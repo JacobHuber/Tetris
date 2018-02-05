@@ -3,8 +3,6 @@ CPSC 233 T03-2 (2017-2018 Winter) Final Project
 
 
 Main Class
-	- Runs App
-	- Sets Up a Game
 
 	Intance Variables
 		- Game variable
@@ -14,8 +12,6 @@ Main Class
 
 
 Block Class
-	- Block Dimensions?
-	- Position of Self
 
 	Instance Variables
 		- Position X (int)
@@ -61,10 +57,6 @@ Block Class
 
 
 Game Class
-	- Board 
-	- Score 
-	- Create Blocks (Timer and method)
-	- Etc...
 
 	Instance Variables
 		- GridSpace (Probably a 2d array)
@@ -84,9 +76,6 @@ Game Class
 
 
 Player Class
-	- Current Block
-	- Controls
-	- Hold Slot
 
 	Instance Variables
 		- Current Block (The block that is currently falling)
@@ -114,5 +103,3 @@ Set up a basic structure for our classes to get us started for Demo 1. Most thin
 I'm thinking for now we'll leave blocks as just 1x1 bricks, and for the representation of the gridspace well have a 2d array, the inner one being a boolean array showing whether it is occupied or not. i.e: [ [0, 1, 1, 0, 0], [1, 0 0 0 0], [0, 0, 1, 1, 0] ]
 
 We can figure out the actual size of the grid space later but for now it can just be 8x24
-
-Let me know any problems we have
