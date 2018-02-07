@@ -12,6 +12,9 @@ public class Game {
 	private int score = 0;
 	private int time = 0;
 
+	public Game(){
+	}
+
 
 	public void createBlock() {
 		// Create a new block at the top centre of the screen
