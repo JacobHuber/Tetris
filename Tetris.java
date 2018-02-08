@@ -3,5 +3,11 @@ public class Tetris {
 		Game game = new Game();
 
 		
+		while (true) {
+			game.tick();
+		}
+
 	}
+
+
 }
