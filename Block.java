@@ -1,4 +1,4 @@
-public class Block {
++public class Block {
 	private int positionX;
 	private int positionY;
 
@@ -11,6 +11,8 @@ public class Block {
 
 	public Block(Game game) {
 		this.game = game;
+		this.setPositionX(this.game.gridWidth/2);
+		this.setPositionY(0);
 	}
 
 
@@ -33,20 +35,24 @@ public class Block {
 	}
 
 
+	// Setters
+
 	public boolean setPositionX(int positionX) {
 		if (positionX >= 0 && positionX < game.gridWidth) {
-			// Add collision checking with other blocks
-			this.positionX = positionX;
-			return true;
+			if (this.checkColliding(positionX, this.getPositionX())) {
+				this.positionX = positionX;
+				return true;
+			}
 		}
 		return false;
 	}
 
 	public boolean setPositionY(int positionY) {
 		if (positionY >= 0 && positionY < game.gridHeight) {
-			// Add collision checking with other blocks
-			this.positionY = positionY;
-			return true;
+			if (this.checkColliding(this.getPositionY(), positionY)) {
+				this.positionY = positionY;
+				return true;
+			}
 		}
 		return false;
 	}
@@ -56,20 +62,20 @@ public class Block {
 	}
 
 	public void moveDown() {
-		if !(this.setPositionY(this.positionY + 1)) {
+		if !(this.setPositionY(this.getPositionY() + 1)) {
 			this.setFalling(false);
 		}
 	}
 
 	public void moveLeft() {
-		this.setPositionX(this.positionX - 1);
+		this.setPositionX(this.getPositionX() - 1);
 	}
 
 	public void moveRight() {
-		this.setPositionX(this.positionX + 1);
+		this.setPositionX(this.getPositionX() + 1);
 	}
 
-	public void checkColliding(int positionX, int positionY) {
+	public boolean checkColliding(int positionX, int positionY) {
 		blocks = this.game.getArrayBlocks();
 		for (int blockIndex = 0; blockIndex < blocks.length(); blockIndex++) {
 			otherBlock = blocks[blockIndex];
