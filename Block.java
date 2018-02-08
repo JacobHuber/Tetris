@@ -75,6 +75,12 @@
 		this.setPositionX(this.getPositionX() + 1);
 	}
 
+	public void placeBlock() {
+		while (this.getFalling()) {
+			this.moveDown();
+		}
+	}
+
 	public boolean checkColliding(int positionX, int positionY) {
 		blocks = this.game.getArrayBlocks();
 		for (int blockIndex = 0; blockIndex < blocks.length(); blockIndex++) {
