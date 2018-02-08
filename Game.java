@@ -104,18 +104,24 @@ public class Game {
     }
 
     public void printScreen() {
-        String screen = "";
-        for (int col = 0; col < this.gridHeight; col++) {
-            for (int row = 0; row < this.gridWidth; row++) {
-                /*
-				for (Block[] selectedBlock : this.getArrayBlocks()) {
+		String screen = "";
+		for (int col = 0; col < this.gridHeight; col++) {
+			for (int row = 0; row <  this.gridWidth; row++) {
+				
+				for (Block selectedBlock : this.getArrayBlocks()) {
 					if (col == selectedBlock.getPositionX() && row == selectedBlock.getPositionY()) {
+						screen += "x";
+						break;
 					}
 				}
-                 */
+				if (screen.length != 1 + row + (col*this.gridWidth)) {
+					screen += "o";
+				}
 
-            }
-        }
+			}
+			screen += "\n";
+		}
+		System.out.println(screen);
 
-    }
+	}
 }
