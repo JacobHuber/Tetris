@@ -1,4 +1,3 @@
-import Models.GameLogic;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -14,8 +13,6 @@ import javafx.stage.Stage;
  * @author kell-gigabyte
  */
 public class MainViewFX extends Application {
-
-    private GameLogic logic;
 
     private FlowPane tetrisPane;
     private FlowPane colorPane;

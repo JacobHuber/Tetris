@@ -14,8 +14,6 @@ public class Player
 		
 		String move = read.nextLine();
 		
-		read.close();
-		
 		move = move.toUpperCase();
 		
 		switch(move)

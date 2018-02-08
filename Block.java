@@ -62,7 +62,7 @@ public class Block {
 	}
 
 	public void moveDown() {
-		if !(this.setPositionY(this.getPositionY() + 1)) {
+		if(!this.setPositionY(this.getPositionY() + 1)) {
 			this.setFalling(false);
 		}
 	}
@@ -83,9 +83,9 @@ public class Block {
 
 	public boolean checkColliding(int positionX, int positionY) {
 		Block[] blocks = this.game.getArrayBlocks();
-		for (int blockIndex = 0; blockIndex < blocks.length(); blockIndex++) {
-			otherBlock = blocks[blockIndex];
-			if (otherBlock != this) {
+		for (int blockIndex = 0; blockIndex < blocks.length; blockIndex++) {
+			Block otherBlock = blocks[blockIndex];
+			if (otherBlock != this && otherBlock != null) {
 				if (positionX == otherBlock.getPositionX() && positionY == otherBlock.getPositionY()) {
 					return true;
 				}
