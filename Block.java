@@ -82,7 +82,7 @@ public class Block {
 	}
 
 	public boolean checkColliding(int positionX, int positionY) {
-		blocks = this.game.getArrayBlocks();
+		Block[] blocks = this.game.getArrayBlocks();
 		for (int blockIndex = 0; blockIndex < blocks.length(); blockIndex++) {
 			otherBlock = blocks[blockIndex];
 			if (otherBlock != this) {
