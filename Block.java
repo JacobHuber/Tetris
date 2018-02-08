@@ -1,4 +1,4 @@
-+public class Block {
+public class Block {
 	private int positionX;
 	private int positionY;
 
