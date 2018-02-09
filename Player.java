@@ -4,6 +4,7 @@ public class Player
 {
 	Block blockFalling;
 	Block blockHold;
+	
 	Scanner read = new Scanner(System.in);
 	
 	public void getUserInput() 

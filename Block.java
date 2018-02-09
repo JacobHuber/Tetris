@@ -11,7 +11,7 @@ public class Block {
 
 	public Block(Game game) {
 		this.game = game;
-		this.setPositionX(this.game.gridWidth/2);
+		this.setPositionX(this.game.);
 		this.setPositionY(0);
 	}
 
@@ -51,9 +51,8 @@ public class Block {
 		if (positionY >= 0 && positionY < game.gridHeight) {
 			if (!this.checkColliding(this.getPositionX(), positionY)) {
 				this.positionY = positionY;
-                                                                        System.out.println(this.positionY);
-			
-                                                                        return true;
+	
+			    return true;
 			}
 		}
 		return false;
