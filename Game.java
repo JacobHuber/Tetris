@@ -44,7 +44,7 @@ public class Game {
     }
 
     public int getBlockSpawnY() {
-        return this.blockSpawnY();
+        return this.blockSpawnY;
     }
 
     public Player getPlayer() {
@@ -68,7 +68,7 @@ public class Game {
     }
 
     public void setPlayer(Player player) {
-        this.player = Player;
+        this.player = player;
     }
 
     public void setGameRunning(boolean gameRunning) {

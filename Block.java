@@ -11,7 +11,7 @@ public class Block {
 
 	public Block(Game game) {
 		this.game = game;
-		this.setPositionX(this.game.);
+		this.setPositionX(this.game.getBlockSpawnX());
 		this.setPositionY(0);
 	}
 
