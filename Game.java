@@ -99,6 +99,8 @@ public class Game {
         this.player.blockFalling = new Block(this);
         if (this.arrayBlocks[this.player.blockFalling.getPositionX() * this.player.blockFalling.getPositionY()] == null) {
             this.arrayBlocks[this.player.blockFalling.getPositionX() * this.player.blockFalling.getPositionY()] = this.player.blockFalling;
+        
+        //This is the endgame condition.
         } else {
             this.setGameRunning(false);
         }
