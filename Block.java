@@ -39,7 +39,7 @@ public class Block {
 
 	public boolean setPositionX(int positionX) {
 		if (positionX >= 0 && positionX < game.gridWidth) {
-			if (this.checkColliding(positionX, this.getPositionX())) {
+			if (!this.checkColliding(positionX, this.getPositionY())) {
 				this.positionX = positionX;
 				return true;
 			}
@@ -49,9 +49,11 @@ public class Block {
 
 	public boolean setPositionY(int positionY) {
 		if (positionY >= 0 && positionY < game.gridHeight) {
-			if (this.checkColliding(this.getPositionY(), positionY)) {
+			if (!this.checkColliding(this.getPositionX(), positionY)) {
 				this.positionY = positionY;
-				return true;
+                                                                        System.out.println(this.positionY);
+			
+                                                                        return true;
 			}
 		}
 		return false;

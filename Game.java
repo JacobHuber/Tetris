@@ -85,7 +85,8 @@ public class Game {
      */
     public void createBlock() {
         this.player.blockFalling = new Block(this);
-        this.player.blockFalling.placeBlock();
+        this.arrayBlocks[this.player.blockFalling.getPositionX() * this.player.blockFalling.getPositionY()] = this.player.blockFalling;
+       // this.player.blockFalling.placeBlock();
     }
 
     /**
@@ -95,6 +96,7 @@ public class Game {
         if(this.player.blockFalling == null){
             this.createBlock();
         }
+        this.printScreen();
         this.player.getUserInput();
         this.player.blockFalling.moveDown();
     }
@@ -109,12 +111,14 @@ public class Game {
 			for (int row = 0; row <  this.gridWidth; row++) {
 				
 				for (Block selectedBlock : this.getArrayBlocks()) {
+                                                                                           if(selectedBlock != null){
 					if (col == selectedBlock.getPositionX() && row == selectedBlock.getPositionY()) {
 						screen += "x";
 						break;
 					}
+                                                                                           }
 				}
-				if (screen.length != 1 + row + (col*this.gridWidth)) {
+				if (screen.length() != 1 + row + (col*this.gridWidth)) {
 					screen += "o";
 				}
 
