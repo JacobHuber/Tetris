@@ -26,51 +26,43 @@ public class Game {
 
     private boolean gameRunning = true;
 
-
+    //Getters for the width, height, blocks, spawn coordinates, player and running the game.
     public int getGridWidth() {
         return this.gridWidth;
     }
-
     public int getGridHeight() {
         return this.gridHeight;
     }
-
     public Block[] getArrayBlocks() {
         return this.arrayBlocks;
     }
-
     public int getBlockSpawnX() {
         return this.blockSpawnX;
     }
-
     public int getBlockSpawnY() {
         return this.blockSpawnY;
     }
-
     public Player getPlayer() {
         return this.player;
     }
-
     public boolean getGameRunning() {
         return this.gameRunning;
     }
 
+    //Setters for the spawn coordinates, player and running the game.
     public void setBlockSpawnX(int blockSpawnX) {
         if (blockSpawnX >= 0 && blockSpawnX < this.getGridWidth()) {
             this.blockSpawnX = blockSpawnX;
         }
     }
-
     public void setBlockSpawnY(int blockSpawnY) {
         if (blockSpawnY >= 0 && blockSpawnY < this.getGridHeight()) {
             this.blockSpawnY = blockSpawnY;
         }
     }
-
     public void setPlayer(Player player) {
         this.player = player;
     }
-
     public void setGameRunning(boolean gameRunning) {
         this.gameRunning = gameRunning;
     }
