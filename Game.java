@@ -49,7 +49,7 @@ public class Game {
         return this.gameRunning;
     }
 
-    //Setters for the spawn coordinates, player and running the game.
+    // Setters for the spawn coordinates, player and running the game.
     public void setBlockSpawnX(int blockSpawnX) {
         if (blockSpawnX >= 0 && blockSpawnX < this.getGridWidth()) {
             this.blockSpawnX = blockSpawnX;
@@ -84,32 +84,41 @@ public class Game {
     }
     
     /**
-     * Creates a new block, and checks iff there is a block already existing 
+     * Creates a new block, and checks if there is a block already existing 
      * in the block creation position to tell whether the game has ended or not.
      */
     public void createBlock() {
         this.player.blockFalling = new Block(this);
+
+        // If there is an empty space at the block creation position set the block there in the array, otherwise end the game.
         if (this.arrayBlocks[this.player.blockFalling.getPositionX() * this.player.blockFalling.getPositionY()] == null) {
             this.arrayBlocks[this.player.blockFalling.getPositionX() * this.player.blockFalling.getPositionY()] = this.player.blockFalling;
-        
-        //This is the endgame condition.
         } else {
             this.setGameRunning(false);
         }
     }
 
     /**
-     * Steps the game, gets user input to rotate/move the falling block, and move the block down one tile.
+     * Steps the game, creating a block if needed, printing the game screen, 
+     * getting user input to move the falling block or set the block in place, then moving it down.
      */
     public void tick() {
+        // If no falling block exists or the current falling block has stopped falling (Collided), create a new block
         if(this.player.blockFalling == null || !this.player.blockFalling.getFalling()){
             this.createBlock();
         }
+
         this.printScreen();
+        
+        // Clear the reference from the previous array spot to the falling block
         this.arrayBlocks[this.player.blockFalling.getPositionX() * this.player.blockFalling.getPositionY()] = null;
+ 
         this.player.getUserInput();
-        this.arrayBlocks[this.player.blockFalling.getPositionX() * this.player.blockFalling.getPositionY()] = this.player.blockFalling;
         this.player.blockFalling.moveDown();
+ 
+        // Set a new reference to the falling block in its new position
+        this.arrayBlocks[this.player.blockFalling.getPositionX() * this.player.blockFalling.getPositionY()] = this.player.blockFalling;
+
     }
 
     /**

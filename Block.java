@@ -1,20 +1,19 @@
-//This class makes the blocks. Sets the x and y corrdinates and has it falling.
 public class Block {
 	private int positionX;
 	private int positionY;
 
 	private boolean falling = true;
 	
-	//Creates a new game.
+	// Creates a new game.
 	private Game game;
 
 
 
-	//Constructor that creates a new block.
+	// Constructor that creates a new block.
 	public Block(Game game) {
 		this.game = game;
 		this.setPositionX(this.game.getBlockSpawnX());
-		this.setPositionY(0);
+		this.setPositionY(this.game.getBlockSpawnY());
 	}
 
 
@@ -53,12 +52,12 @@ public class Block {
 		}
 		return false;
 	}
-	//Setter that set if the block is falling
+	// Setter that set if the block is falling
 	public void setFalling(boolean falling) {
 		this.falling = falling;
 	}
 
-	//Movement methods.
+	// Movement methods.
 	public void moveDown() {
 		if(!this.setPositionY(this.getPositionY() + 1)) {
 			this.setFalling(false);
@@ -71,14 +70,14 @@ public class Block {
 		this.setPositionX(this.getPositionX() + 1);
 	}
 
-	//Placing the block.
+	// Placing the block.
 	public void placeBlock() {
 		while (this.getFalling()) {
 			this.moveDown();
 		}
 	}
 	
-	//Checks if there is a collision with blocks in the coordinates in the parameter.
+	// Checks if there is a collision with blocks in the coordinates in the parameter.
 	public boolean checkColliding(int positionX, int positionY) {
 		Block[] blocks = this.game.getArrayBlocks();
 		for (int blockIndex = 0; blockIndex < blocks.length; blockIndex++) {
