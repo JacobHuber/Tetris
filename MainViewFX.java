@@ -1,3 +1,7 @@
+
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -7,9 +11,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 /**
  * For future use when we need to use a GUI.
+ *
  * @author kell-gigabyte
  */
 public class MainViewFX extends Application {
@@ -28,19 +34,41 @@ public class MainViewFX extends Application {
     private final String hexDelayBox = "78866B";
     private final String hexSliderBox = "90AFFF";
 
+    private int autoFall;
+    private long lastFall;
+    
+    private int width;
+    private int height;
+    
+    public static Game myGame;
+
     /**
      * Launches the GUI window.
-     * @param args 
+     *
+     * @param args
+     * @param width
+     * @param height
+     * @param autoFall
      */
-    public static void init(String[] args) {
+    public void init(String[] args, int width, int height, int autoFall) {
+        this.autoFall = autoFall;
+        myGame = new Game(width, height);
+        this.width = width;
+        this.height = height;
+        System.out.println("Game launched");
+        System.out.println("Game started");
         launch(args);
+
     }
 
     /**
-    * Starts the JavaFX application window, creating the panes for view
-    */
+     * Starts the JavaFX application window, creating the panes for view
+     *
+     * @param primaryStage
+     */
     @Override
     public void start(Stage primaryStage) {
+
         primaryStage.setTitle("Tetris V01");
 
         // The root pane, has a basic layout allowing other panes to go on top
@@ -54,76 +82,139 @@ public class MainViewFX extends Application {
         // Creates a scene, which is what is actually displayed. Uses the root pane.
         Scene scene = new Scene(root);
 
+        setupKeyboard(scene);
+
         // Sets the scene, and shows it to the user.
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
     /**
-    * Generates the flowPane acting as the tetris window
-    */
+     * Generates the flowPane acting as the tetris window
+     */
     private FlowPane addTetrisPane() {
         // Creates a new, empty pane
         FlowPane tetrisPane = new FlowPane();
         // Sets the packground color
         tetrisPane.setStyle("-fx-background-color: #" + this.hexColorBox + ";");
-        
+
         // Sets the spacing for the Rectangle objects within
         tetrisPane.setPadding(new Insets(5, 10, 5, 10));
         tetrisPane.setVgap(4);
         tetrisPane.setHgap(4);
         tetrisPane.setPrefWrapLength(900); // preferred width allows for two columns
         
+        Rectangle[][] rectArr = new Rectangle[this.height][this.width];
         
-        // Temp code, for testing. Generates 11 rectangles that should autofill the tetris grid, or to test it anyways.
-            Rectangle rect1 = new Rectangle(75, 75);
-            rect1.setFill(Color.CORNFLOWERBLUE);
-            Rectangle rect2 = new Rectangle(75, 75);
-            rect2.setFill(Color.GREENYELLOW);
-            // Creates new rectangle, 75 by 75 pixel size.
-            Rectangle rect3 = new Rectangle(75, 75);
-            // Sets the rectangle a certain color.
-            rect3.setFill(Color.DARKVIOLET);
-            Rectangle rect4 = new Rectangle(75, 75);
-            rect4.setFill(Color.BURLYWOOD);
-            Rectangle rect5 = new Rectangle(75, 75);
-            rect5.setFill(Color.WHITE);
-            Rectangle rect6 = new Rectangle(75, 75);
-            rect6.setFill(Color.PEACHPUFF);
-            Rectangle rect7 = new Rectangle(75, 75);
-            rect7.setFill(Color.BLUE);
-            Rectangle rect8 = new Rectangle(75, 75);
-            rect8.setFill(Color.CADETBLUE);
-            Rectangle rect9 = new Rectangle(75, 75);
-            rect9.setFill(Color.SILVER);
-            Rectangle rect10 = new Rectangle(75, 75);
-            rect10.setFill(Color.DARKRED);
-            Rectangle rect11 = new Rectangle(75, 75);
-            rect11.setFill(Color.GRAY);
-            
-            tetrisPane.getChildren().addAll(rect1, rect2, rect3, rect4, rect5, rect6, rect7, rect8, rect9, rect10, rect11);
-            
+        for(Rectangle[] rectLine : rectArr){
+            for(Rectangle rect : rectLine){
+                System.out.println("ping!");
+                rect = new Rectangle(75, 75);
+                rect.setFill(Color.GREENYELLOW);
+                tetrisPane.getChildren().add(rect);
+            }
+        }
+
         return tetrisPane;
     }
-    
+
     /**
-     *  Generates a pane for displaying the next 3 tetronimos 
-     * @return Vbox pane 
+     * Generates a pane for displaying the next 3 tetronimos
+     *
+     * @return Vbox pane
      */
-    private VBox addNextBlockPane(){
+    private VBox addNextBlockPane() {
         return new VBox();
     }
-    
+
     /**
-     * Generates a pane with a scoreboard for high scores, displaying top 10, and current score.
-     * Can either be given null, for no saved high scores, or given a file location as a string to load scores from.
+     * Generates a pane with a scoreboard for high scores, displaying top 10,
+     * and current score. Can either be given null, for no saved high scores, or
+     * given a file location as a string to load scores from.
+     *
      * @return Flowpane pane
      */
-    private FlowPane addScorePane(String highScoreFile){
-        if(highScoreFile != null){
-            
+    private FlowPane addScorePane(String highScoreFile) {
+        if (highScoreFile != null) {
+
         }
         return new FlowPane();
     }
 
+    /**
+     * Passes the players move input to the game logic. Mapping of moves is as
+     * follows: Move down: 0 Move Left: 1 Move Right: 2 Rotate Left: 3 Rotate
+     * Right: 4
+     *
+     * @param move
+     * @deprecated
+     */
+    private void passMove(boolean isDropdown, int move) {
+        System.out.println("Game tick");
+        myGame.tick(true, isDropdown, move);
+    }
+
+    private long getLastDownTime() {
+        return this.lastFall;
+    }
+
+    private void setLastDownTime(long time) {
+        this.lastFall = time;
+    }
+
+    private int getDownDelay() {
+        return this.autoFall;
+    }
+
+    /**
+     * Listens to live keyboard input, in order to move the active tetronimo.
+     * Original code:
+     * https://stackoverflow.com/questions/37472273/detect-single-key-press-in-javafx
+     * Original author: Lisek from stackoverflow
+     */
+    private void setupKeyboard(Scene scene) {
+
+        scene.setOnKeyPressed(event -> {
+            System.out.println(myGame.toString());
+            String keyName = event.getCode().getName();
+            System.out.println(event.getCode().getName());
+
+            if (keyName.equals("S")) {
+                System.out.println("mov down");
+                myGame.tick(true, false, 0);
+                setLastDownTime(System.currentTimeMillis());
+            }
+
+            if (keyName.equals("A")) {
+                System.out.println("mov left");
+                myGame.tick(true, true, 1);
+            }
+
+            if (keyName.equals("D")) {
+                System.out.println("mov right");
+                myGame.tick(true, true, 2);
+            }
+
+            if (keyName.equals("Q")) {
+                System.out.println("rot left");
+                myGame.tick(true, true, 3);
+            }
+
+            if (keyName.equals("E")) {
+                System.out.println("rot right");
+                myGame.tick(true, true, 4);
+            }
+        });
+
+        Timeline timeline = new Timeline(new KeyFrame(
+                Duration.millis(2500),
+                ae -> drop()));
+        timeline.setCycleCount(Animation.INDEFINITE);
+        timeline.play();
+    }
+
+    public void drop() {
+        myGame.tick(true, false, 0);
+        setLastDownTime(System.currentTimeMillis());
+    }
 }

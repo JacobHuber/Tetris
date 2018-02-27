@@ -1,5 +1,7 @@
+
 /**
- *  Controls the game logic of Tetris via Block objects.
+ * Controls the game logic of Tetris via Block objects.
+ *
  * @see Block.java
  *
  */
@@ -20,9 +22,8 @@ public class Game {
 
     private int blockSpawnX;
     private int blockSpawnY;
-    
+
     private Player player;
-    
 
     private boolean gameRunning = true;
 
@@ -30,21 +31,27 @@ public class Game {
     public int getGridWidth() {
         return this.gridWidth;
     }
+
     public int getGridHeight() {
         return this.gridHeight;
     }
+
     public Block[] getArrayBlocks() {
         return this.arrayBlocks;
     }
+
     public int getBlockSpawnX() {
         return this.blockSpawnX;
     }
+
     public int getBlockSpawnY() {
         return this.blockSpawnY;
     }
+
     public Player getPlayer() {
         return this.player;
     }
+
     public boolean getGameRunning() {
         return this.gameRunning;
     }
@@ -55,37 +62,37 @@ public class Game {
             this.blockSpawnX = blockSpawnX;
         }
     }
+
     public void setBlockSpawnY(int blockSpawnY) {
         if (blockSpawnY >= 0 && blockSpawnY < this.getGridHeight()) {
             this.blockSpawnY = blockSpawnY;
         }
     }
+
     public void setPlayer(Player player) {
         this.player = player;
     }
-    public void setGameRunning(boolean gameRunning) {
-        this.gameRunning = gameRunning;
-    }
-
 
     /**
-     * Creates the game with a standard 10 wide, 20 tall grid.
+     * Creates the game with an inputted grid, height, and milliseconds per tick
+     * the block fall automatically.
      */
-    public Game() {
-        this.gridWidth = 10;
-        this.gridHeight = 20;
-        
+    public Game(int width, int height) {
+        this.gridWidth = width;
+        this.gridHeight = height;
+
         this.player = new Player();
-        
+
         this.blockSpawnX = this.gridWidth / 2;
         this.blockSpawnY = 0;
-        
+
         this.arrayBlocks = new Block[this.gridWidth * this.gridHeight];
+
     }
-    
+
     /**
-     * Creates a new block, and checks if there is a block already existing 
-     * in the block creation position to tell whether the game has ended or not.
+     * Creates a new block, and checks if there is a block already existing in
+     * the block creation position to tell whether the game has ended or not.
      */
     public void createBlock() {
         this.player.blockFalling = new Block(this);
@@ -94,31 +101,59 @@ public class Game {
         if (this.arrayBlocks[this.player.blockFalling.getPositionX() * this.player.blockFalling.getPositionY()] == null) {
             this.arrayBlocks[this.player.blockFalling.getPositionX() * this.player.blockFalling.getPositionY()] = this.player.blockFalling;
         } else {
-            this.setGameRunning(false);
+            this.gameRunning = false;
         }
     }
 
     /**
-     * Steps the game, creating a block if needed, printing the game screen, 
-     * getting user input to move the falling block or set the block in place, then moving it down.
+     * Steps the game, creating a block if needed, printing the game screen,
+     * getting user input to move the falling block or set the block in place,
+     * then moving it down. Pass the isUserInput boolean as true if it is a user
+     * move, and pass the mapped int as a move. Otherwise pass as false for a
+     * falldown tick.
+     *
+     * @param shouldTerminalPrint
+     * @param isUserInput
+     * @param userInput
      */
-    public void tick() {
+    public void tick(boolean shouldTerminalPrint, boolean isUserInput, int userInput) {
+        System.out.println("Tick!");
         // If no falling block exists or the current falling block has stopped falling (Collided), create a new block
-        if(this.player.blockFalling == null || !this.player.blockFalling.getFalling()){
+        if (this.player.blockFalling == null || !this.player.blockFalling.getFalling()) {
             this.createBlock();
         }
 
-        this.printScreen();
-        
-        // Clear the reference from the previous array spot to the falling block
-        this.arrayBlocks[this.player.blockFalling.getPositionX() * this.player.blockFalling.getPositionY()] = null;
- 
-        this.player.getUserInput();
-        this.player.blockFalling.moveDown();
- 
-        // Set a new reference to the falling block in its new position
-        this.arrayBlocks[this.player.blockFalling.getPositionX() * this.player.blockFalling.getPositionY()] = this.player.blockFalling;
+        if (!isUserInput || userInput == 0) {
+            // Clear the reference from the previous array spot to the falling block
+            this.arrayBlocks[this.player.blockFalling.getPositionX() * this.player.blockFalling.getPositionY()] = null;
 
+            this.player.blockFalling.moveDown();
+
+            // Set a new reference to the falling block in its new position
+            this.arrayBlocks[this.player.blockFalling.getPositionX() * this.player.blockFalling.getPositionY()] = this.player.blockFalling;
+        }
+
+        if (isUserInput) {
+            System.out.println("User input detected: " + userInput);
+            switch (userInput) {
+                case 1:
+                    this.player.blockFalling.moveLeft();
+                    break;
+                case 2:
+                    this.player.blockFalling.moveRight();
+                    break;
+                case 3:
+                    System.out.println("Not yet implemented");
+                    break;
+                case 4:
+                    System.out.println("Not yet implemented");
+                    break;
+            }
+        }
+
+        if (shouldTerminalPrint) {
+            this.printScreen();
+        }
     }
 
     /**
@@ -127,11 +162,11 @@ public class Game {
     public void printScreen() {
         String screen = "";
         for (int col = 0; col < this.gridHeight; col++) {
-            for (int row = 0; row <  this.gridWidth; row++) {
+            for (int row = 0; row < this.gridWidth; row++) {
                 boolean blockFound = false;
 
                 for (Block selectedBlock : this.getArrayBlocks()) {
-                    if (selectedBlock != null){
+                    if (selectedBlock != null) {
                         if (row == selectedBlock.getPositionX() && col == selectedBlock.getPositionY()) {
                             screen += "x";
                             blockFound = true;
@@ -139,7 +174,7 @@ public class Game {
                         }
                     }
                 }
-                
+
                 if (!blockFound) {
                     screen += "o";
                 }
@@ -149,5 +184,10 @@ public class Game {
         }
         System.out.println(screen);
 
+    }
+
+    @Override
+    public String toString() {
+        return this.gridHeight + "  " + this.gridWidth;
     }
 }
