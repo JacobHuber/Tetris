@@ -1,4 +1,6 @@
 
+import javafx.scene.paint.Color;
+
 /**
  * Controls the game logic of Tetris via Block objects.
  *
@@ -26,6 +28,9 @@ public class Game {
     private Player player;
 
     private boolean gameRunning = true;
+
+    // Used to control the next color iterated over for the blocks.
+    private int colorInt = 0;
 
     //Getters for the width, height, blocks, spawn coordinates, player and running the game.
     public int getGridWidth() {
@@ -94,8 +99,8 @@ public class Game {
      * Creates a new block, and checks if there is a block already existing in
      * the block creation position to tell whether the game has ended or not.
      */
-    public void createBlock() {
-        this.player.blockFalling = new Block(this);
+    public void createBlock(Color c) {
+        this.player.blockFalling = new Block(this, c);
 
         // If there is an empty space at the block creation position set the block there in the array, otherwise end the game.
         if (this.arrayBlocks[this.player.blockFalling.getPositionX() * this.player.blockFalling.getPositionY()] == null) {
@@ -120,7 +125,7 @@ public class Game {
         System.out.println("Tick!");
         // If no falling block exists or the current falling block has stopped falling (Collided), create a new block
         if (this.player.blockFalling == null || !this.player.blockFalling.getFalling()) {
-            this.createBlock();
+            this.createBlock(getNextColor());
         }
 
         if (!isUserInput || userInput == 0) {
@@ -189,5 +194,34 @@ public class Game {
     @Override
     public String toString() {
         return this.gridHeight + "  " + this.gridWidth;
+    }
+
+    public Color getNextColor() {
+        switch (this.colorInt) {
+            case 0:
+                this.colorInt++;
+                return Color.CYAN;
+            case 1:
+                this.colorInt++;
+                return Color.BLUE;
+            case 2:
+                this.colorInt++;
+                return Color.ORANGE;
+            case 3:
+                this.colorInt++;
+                return Color.YELLOW;
+            case 4:
+                this.colorInt++;
+                return Color.LIME;
+            case 5:
+                this.colorInt++;
+                return Color.MAGENTA;
+            case 6:
+                this.colorInt = 0;
+                return Color.RED;
+        }
+        System.err.println("COLOR ERROR!");
+        return null;
+
     }
 }

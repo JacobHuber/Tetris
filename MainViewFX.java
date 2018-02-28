@@ -24,23 +24,26 @@ public class MainViewFX extends Application {
     private FlowPane tetrisPane;
     private FlowPane colorPane;
 
-    // The rectangles representing the Tetris grid
-    private Rectangle[][] rectangles;
-
     // Pre-set color codes for easy modification
     private final String hexHbox = "4A444B";
     private final String hexButtonBox = "BA0101";
     private final String hexColorBox = "FFFFF0";
     private final String hexDelayBox = "78866B";
     private final String hexSliderBox = "90AFFF";
+    private final String tetronimoDefaultColor = "FFFFFF";
+    private final String tetronimoBackgroundColor = "80BFFF";
 
-    private int autoFall;
+    private static int autoFall;
     private long lastFall;
     
-    private int width;
-    private int height;
+    // Width and height of tetris grid
+    private static int width;
+    private static int height;
     
     public static Game myGame;
+    
+    // Rectangle representation of the tetris grid
+    private Rectangle[][] teronimos;
 
     /**
      * Launches the GUI window.
@@ -96,21 +99,21 @@ public class MainViewFX extends Application {
         // Creates a new, empty pane
         FlowPane tetrisPane = new FlowPane();
         // Sets the packground color
-        tetrisPane.setStyle("-fx-background-color: #" + this.hexColorBox + ";");
+        tetrisPane.setStyle("-fx-background-color: #" + this.tetronimoBackgroundColor + ";");
 
         // Sets the spacing for the Rectangle objects within
         tetrisPane.setPadding(new Insets(5, 10, 5, 10));
         tetrisPane.setVgap(4);
         tetrisPane.setHgap(4);
-        tetrisPane.setPrefWrapLength(900); // preferred width allows for two columns
+        tetrisPane.setPrefWrapLength(MainViewFX.width * 79); // preferred width allows for two columns
         
-        Rectangle[][] rectArr = new Rectangle[this.height][this.width];
+        //System.out.println(this.height + " " + this.width);
+       this.teronimos = new Rectangle[MainViewFX.height][MainViewFX.width];
         
-        for(Rectangle[] rectLine : rectArr){
+        for(Rectangle[] rectLine : this.teronimos){
             for(Rectangle rect : rectLine){
-                System.out.println("ping!");
                 rect = new Rectangle(75, 75);
-                rect.setFill(Color.GREENYELLOW);
+                rect.setFill(Color.web(this.tetronimoDefaultColor));
                 tetrisPane.getChildren().add(rect);
             }
         }
@@ -154,14 +157,27 @@ public class MainViewFX extends Application {
         myGame.tick(true, isDropdown, move);
     }
 
+    /**
+     * Gets the last time is system milliseconds that the block was moved down.
+     * @return 
+     */
     private long getLastDownTime() {
         return this.lastFall;
     }
 
+    /**
+     * Sets the last system time that the block was moved down, either from user input or the auto timer.
+     * @param time 
+     */
     private void setLastDownTime(long time) {
         this.lastFall = time;
     }
 
+    /**
+     * Returns the delay between the block falling currently.
+     * @return delay
+     * @deprecated 
+     */
     private int getDownDelay() {
         return this.autoFall;
     }
@@ -213,8 +229,15 @@ public class MainViewFX extends Application {
         timeline.play();
     }
 
+    /**
+     * Calls the tick method of the Game object to move down the current block.
+     */
     public void drop() {
         myGame.tick(true, false, 0);
         setLastDownTime(System.currentTimeMillis());
+    }
+    
+    public void updateRectangles(){
+        
     }
 }
