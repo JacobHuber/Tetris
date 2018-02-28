@@ -1,23 +1,47 @@
+/**
+ * Representation of a single cube in tetris. Can be moved, as well as check for collisions with other blocks.
+ *
+ * @author jacob-huber
+ */
 public class Block {
+	// X and Y Position on the game grid
 	private int positionX;
 	private int positionY;
 
 	private boolean falling = true;
 	
-	// Creates a new game.
+	// Reference for the game it's a part of.
 	private Game game;
 
+	// Reference for the tetromino it's a part of.
+	private Tetromino tetromino;
 
 
-	// Constructor that creates a new block.
+	/**
+	 * Creates a new block and assigns it a given game.
+	 * Position x and y is set based on game.
+	 *
+	 * @param game
+	 */
 	public Block(Game game) {
 		this.game = game;
 		this.setPositionX(this.game.getBlockSpawnX());
 		this.setPositionY(this.game.getBlockSpawnY());
 	}
 
+ 	/**
+ 	 * Creates a shallow copy of another block.
+ 	 *
+ 	 * @param block
+ 	 */
+	public Block(Block block) {
+		this.game = block.game;
+		this.tetromino = block.getTetromino();
+		this.setPositionX(block.getPositionX());
+		this.setPositionY(block.getPositionX());
+	}
 
-	// Getters for getting the game, x and y coordinates and if it's falling. 
+	// Getters for x and y coordinates, the game, if it's falling, and its tetromino. 
 	public int getPositionX() {
 		return this.positionX;
 	}
@@ -30,21 +54,37 @@ public class Block {
 	public Game getGame() {
 		return this.game;
 	}
+	public Tetromino getTetromino() {
+		return this.tetromino;
+	}
 
-
-	// Setters for setting the x and y positions.
+	/**
+	 * Sets the block's X position as long as it is not colliding with another block or a wall
+	 *
+	 * @return boolean
+	 *
+	 * @param positionX
+	 */
 	public boolean setPositionX(int positionX) {
 		if (positionX >= 0 && positionX < game.gridWidth) {
-			if (!this.checkColliding(positionX, this.getPositionY())) {
+			if (this.checkColliding(positionX, this.getPositionY()) == null) {
 				this.positionX = positionX;
 				return true;
 			}
 		}
 		return false;
 	}
+
+	/**
+	 * Sets the block's Y position as long as it is not colliding with another block or a wall
+	 *
+	 * @return boolean
+	 *
+	 * @param positionY
+	 */
 	public boolean setPositionY(int positionY) {
 		if (positionY >= 0 && positionY < game.gridHeight) {
-			if (!this.checkColliding(this.getPositionX(), positionY)) {
+			if (this.checkColliding(this.getPositionX(), positionY) == null) {
 				this.positionY = positionY;
 	
 			    return true;
@@ -52,43 +92,66 @@ public class Block {
 		}
 		return false;
 	}
-	// Setter that set if the block is falling
+
+	// Setters for falling, and tetromino
 	public void setFalling(boolean falling) {
 		this.falling = falling;
 	}
+	public void setTetromino(Tetromino tetromino) {
+		this.tetromino = tetromino;
+	}
 
-	// Movement methods.
+	/**
+	 * Moves the block down, if it collides set its falling to false.
+	 */
 	public void moveDown() {
 		if(!this.setPositionY(this.getPositionY() + 1)) {
 			this.setFalling(false);
 		}
 	}
+
+	/**
+	 * Moves the block left.
+	 */
 	public void moveLeft() {
 		this.setPositionX(this.getPositionX() - 1);
 	}
+
+	/**
+	 * Moves the block right.
+	 */
 	public void moveRight() {
 		this.setPositionX(this.getPositionX() + 1);
 	}
 
-	// Placing the block.
+	/**
+	 * Moves the block continuously down until it collides with something.
+	 */
 	public void placeBlock() {
 		while (this.getFalling()) {
 			this.moveDown();
 		}
 	}
 	
-	// Checks if there is a collision with blocks in the coordinates in the parameter.
-	public boolean checkColliding(int positionX, int positionY) {
+	/**
+	 * Checks whether there is a collision at the given position with another block.
+	 *
+	 * @return block
+	 *
+	 * @param positionX
+	 * @param positionY
+	 */
+	public Block checkColliding(int positionX, int positionY) {
 		Block[] blocks = this.game.getArrayBlocks();
 		for (int blockIndex = 0; blockIndex < blocks.length; blockIndex++) {
 			Block otherBlock = blocks[blockIndex];
 			if (otherBlock != this && otherBlock != null) {
 				if (positionX == otherBlock.getPositionX() && positionY == otherBlock.getPositionY()) {
-					return true;
+					return otherBlock;
 				}
 			}
 		}
-		return false;
+		return null;
 	}
 
 
