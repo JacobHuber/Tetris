@@ -105,6 +105,7 @@ public class Game {
      * the block creation position to tell whether the game has ended or not.
      */
     public void createBlock(Color c) {
+        //System.out.println("New block created");
         this.player.blockFalling = new Block(this, c);
 
         // If there is an empty space at the block creation position set the block there in the array, otherwise end the game.
@@ -122,12 +123,11 @@ public class Game {
      * move, and pass the mapped int as a move. Otherwise pass as false for a
      * falldown tick.
      *
-     * @param shouldTerminalPrint
      * @param isUserInput
      * @param userInput
      */
     public void tick(boolean isUserInput, int userInput) {
-        //System.out.println("Tick!");
+        System.out.println("Tick!");
         // If no falling block exists or the current falling block has stopped falling (Collided), create a new block
         if (this.player.blockFalling == null || !this.player.blockFalling.getFalling()) {
             this.createBlock(getNextColor());

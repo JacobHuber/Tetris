@@ -184,13 +184,22 @@ public class MainViewFX extends Application {
         // Reset all colors to default
         for (Rectangle[] rectArr : this.tetronimos) {
             for (Rectangle rect : rectArr) {
-                rect.setFill(Color.web(this.tetronimoDefaultColor));
+                if (rect.getFill().toString().equals(("0x" + this.tetronimoDefaultColor + "FF").toLowerCase())) {
+
+                } else {
+                    rect.setFill(Color.web(this.tetronimoDefaultColor));
+                    System.out.println("Setting a rect color to def " + rect.getFill().toString() + "   " + ("0x" + this.tetronimoDefaultColor + "FF").toLowerCase());
+                }
             }
         }
 
         // Add any Block colors to the Rectangle Array
         for (Block block : blocks) {
             if (block != null) {
+                if (this.tetronimos[block.getPositionY()][block.getPositionX()].getFill() != Color.web(this.tetronimoDefaultColor)) {
+                    // Error printout broken, do not uncomment, it'll print even if nothing is wrong
+                    // System.err.println("Block overlap detected! " + block.getPositionX() + "X, " + block.getPositionY() + "Y");
+                }
                 this.tetronimos[block.getPositionY()][block.getPositionX()].setFill(block.getColor());
             }
         }
@@ -204,7 +213,7 @@ public class MainViewFX extends Application {
         @Override
         public void handle(KeyEvent event) {
             //System.out.println(myGame.toString());
-            
+
             // Gets the name of the key, aka the unicode character
             String keyName = event.getCode().getName();
             //System.out.println(event.getCode().getName());

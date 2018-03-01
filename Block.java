@@ -45,6 +45,7 @@ public class Block {
         this.tetromino = block.getTetromino();
         this.setPositionX(block.getPositionX());
         this.setPositionY(block.getPositionX());
+        this.color = block.getColor();
     }
 
     public Block(Game game, Color c) {
