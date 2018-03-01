@@ -11,6 +11,8 @@ public class Tetromino {
 	// Boolean whether the block is a straight piece or not (Rotation is different)
 	private boolean isStraight;
 
+	private boolean falling = true;
+
 	/**
 	 * Creates a new Tetromino with the given blocks and also sets
 	 * whether the block should be treated as if it's straight.
@@ -23,7 +25,9 @@ public class Tetromino {
 		this.isStraight = isStraight;
 
 		for (Block block : this.blocks) {
-			block.setTetromino(this);
+			if (block != null) {
+				block.setTetromino(this);
+			}
 		}
 	}
 
@@ -36,9 +40,22 @@ public class Tetromino {
 		Block[] returnBlocks = new Block[4];
 
 		for (int i = 0; i < 4; i++) {
-			returnBlocks[i] = new Block(this.blocks[i]);
+			if (this.blocks[i] == null) {
+				returnBlocks[i] = null;
+			} else {
+				returnBlocks[i] = new Block(this.blocks[i]);
+			}
 		}
+		Tetromino t = new Tetromino(returnBlocks, false);
 		return returnBlocks;
+	}
+
+	public boolean getIsStraight() {
+		return this.isStraight;
+	}
+
+	public boolean getFalling() {
+		return this.falling;
 	}
 
 	/**
@@ -60,31 +77,25 @@ public class Tetromino {
 	public Block[] checkCollideMove(int horDist, int verDist) {
 		Block[] manipBlocks = this.getBlocks();
 
-		int[] newXArray = new int[4];
-		int[] newYArray = new int[4];
-
 		for (int i = 0; i < 4; i++) {
-			newXArray[i] = manipBlocks[i].getPositionX() + horDist;
-			newYArray[i] = manipBlocks[i].getPositionY() + verDist;
-		}
+			int newX = manipBlocks[i].getPositionX() + horDist;
+			int newY = manipBlocks[i].getPositionY() + verDist;
 
-		int count = 0;
-		while (count != 4) {
-			for (int i = 0; i < 4; i++) {
-				Block outcome = manipBlocks[i].checkColliding(newXArray[i], newYArray[i]);
-				if (outcome == null) {
-					if (manipBlocks[i].getPositionX() != newXArray[i] || manipBlocks[i].getPositionY() != newYArray[i]) {
-						count += 1;
-						manipBlocks[i].setPositionX(newXArray[i]);
-						manipBlocks[i].setPositionY(newYArray[i]);
-					}
-				} else if (outcome.getTetromino() != this) {
-					return null;
+			if (!(manipBlocks[i].setPositionY(newY))) {
+				if (verDist > 0) {
+					this.setFalling(false);
 				}
+				return null;
 			}
+
+			if (!(manipBlocks[i].setPositionX(newX))) {
+				return null;
+			} 
 		}
 
+		// Will attempt to move the blocks to the desired positions.
 		return manipBlocks;
+		
 	}
 
 	/**
@@ -119,8 +130,7 @@ public class Tetromino {
 	 *
 	 * IMPORTANT:
 	 * 
-	 * Straight block rotation is not implemented yet. Also this may not work because some blocks may try 
-	 * to be moved into the position of other blocks of the same Tetromino. (Checks need to be added)
+	 * Straight block rotation is not implemented yet.
 	 *
 	 *
 	 * @return Block[]
@@ -130,53 +140,61 @@ public class Tetromino {
 	public Block[] checkCollideRotate(boolean turnClockwise) {
 		Block[] manipBlocks = this.getBlocks();
 
-		// Skip i = 0 because that's the center block (When rotating that block will not move)
-		for (int i = 1; i < 4; i++) {
-			// Get block x and y relative to the center block of the Tetromino
-			int bX = manipBlocks[i].getPositionX() - manipBlocks[0].getPositionX();
-			int bY = manipBlocks[i].getPositionY() - manipBlocks[0].getPositionX();
+
+		if (this.getIsStraight()) {
 			
-			if (turnClockwise) {
-				int tempX = bX;
-				bX = bY;
-				bY = tempX;
-			}
 
-			// Corner Piece
-			if (bX != 0 && bY != 0) {
-				if (bX == bY) {
-					bY *= -1;
-				} else {
+
+		} else {
+			// Skip i = 0 because that's the center block (When rotating that block will not move)
+			for (int i = 1; i < 4; i++) {
+				// Get block x and y relative to the center block of the Tetromino
+				int bX = manipBlocks[i].getPositionX() - manipBlocks[0].getPositionX();
+				int bY = manipBlocks[i].getPositionY() - manipBlocks[0].getPositionY();
+				
+				if (turnClockwise) {
+					int tempX = bX;
 					bX = bY;
+					bY = tempX;
 				}
-			// Edge Piece
-			} else {
-				if (bX != 0) {
-					bY = bX * -1;
-					bX = 0;
+
+				// Corner Piece
+				if (bX != 0 && bY != 0) {
+					if (bX == bY) {
+						bY *= -1;
+					} else {
+						bX = bY;
+					}
+				// Edge Piece
 				} else {
+					if (bX != 0) {
+						bY = bX * -1;
+						bX = 0;
+					} else {
+						bX = bY;
+						bY = 0;
+					}
+				}
+
+				if (turnClockwise) {
+					int tempX = bX;
 					bX = bY;
-					bY = 0;
+					bY = tempX;
+				}
+
+				// Change x, y back to a proper space on the grid now that they've been rotated around center x, y.
+				bX += manipBlocks[0].getPositionX();
+				bY += manipBlocks[0].getPositionY();
+
+				if (!(manipBlocks[i].setPositionX(bX) && manipBlocks[i].setPositionY(bY))) {
+					return null;
 				}
 			}
-
-			if (turnClockwise) {
-				int tempX = bX;
-				bX = bY;
-				bY = tempX;
-			}
-
-			// Change x, y back to a proper space on the grid now that they've been rotated around center x, y.
-			bX += manipBlocks[0].getPositionX();
-			bY += manipBlocks[0].getPositionY();
 			
-			if (!(manipBlocks[i].setPositionX(bX) && manipBlocks[i].setPositionY(bY))) {
-				manipBlocks = null;
-				break;
-			}
+			return manipBlocks;
 		}
-		
-		return manipBlocks;
+
+		return null;
 	}
 
 	/**
@@ -202,6 +220,7 @@ public class Tetromino {
 	 * @param falling
 	 */
 	public void setFalling(boolean falling) {
+		this.falling = falling;
 		for (Block block : this.blocks) {
 			block.setFalling(falling);
 		}
