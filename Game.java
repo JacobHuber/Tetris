@@ -139,7 +139,7 @@ public class Game {
         }
         
         if (!isUserInput || userInput == 0) {
-            this.player.tetrominoFalling.moveDown();
+            this.player.tetrominoFalling.move(0, 1);
         }
 
         // If the method was called with user input, parse it and then do the respective move.
