@@ -1,5 +1,4 @@
 
-import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -73,6 +72,7 @@ public class MainViewFX extends Application {
     @Override
     public void start(Stage primaryStage) {
 
+        // Task to update the GUI and also cause the block to fall down every [MainViewFX.autoFall] Milliseconds.
         Task task = new Task<Void>() {
             @Override
             public Void call() throws Exception {
@@ -105,14 +105,13 @@ public class MainViewFX extends Application {
 
         // Creates a scene, which is what is actually displayed. Uses the root pane.
         mainScene = new Scene(root);
-        
 
         //setupKeyboard(mainScene);
         mainScene.setOnKeyPressed(keyPressed);
 
         // Sets the scene, and shows it to the user.
         primaryStage.setScene(mainScene);
-        
+
         primaryStage.show();
     }
 
@@ -134,6 +133,7 @@ public class MainViewFX extends Application {
         //System.out.println(this.height + " " + this.width);
         this.tetronimos = new Rectangle[MainViewFX.height][MainViewFX.width];
 
+        // Generates the Rectangle Matrix with default colors
         for (int outer = 0; outer < this.tetronimos.length; outer++) {
             for (int inner = 0; inner < this.tetronimos[outer].length; inner++) {
                 Rectangle rect = new Rectangle(75, 75);
@@ -170,98 +170,25 @@ public class MainViewFX extends Application {
     }
 
     /**
-     * Passes the players move input to the game logic. Mapping of moves is as
-     * follows: Move down: 0 Move Left: 1 Move Right: 2 Rotate Left: 3 Rotate
-     * Right: 4
-     *
-     * @param move
-     * @deprecated
-     */
-    private void passMove(boolean isDropdown, int move) {
-        //System.out.println("Game tick");
-        myGame.tick(isDropdown, move);
-    }
-
-    /**
-     * Gets the last time is system milliseconds that the block was moved down.
-     *
-     * @return
-     * @deprecated
-     */
-    private long getLastDownTime() {
-        return this.lastFall;
-    }
-
-    /**
-     * Sets the last system time that the block was moved down, either from user
-     * input or the auto timer.
-     *
-     * @param time
-     * @deprecated
-     */
-    private void setLastDownTime(long time) {
-        this.lastFall = time;
-    }
-
-    /**
-     * Returns the delay between the block falling currently.
-     *
-     * @return delay
-     * @deprecated
-     */
-    private long getDownDelay() {
-        return this.autoFall;
-    }
-
-    /**
-     * Listens to live keyboard input, in order to move the active tetronimo.
-     * Original code:
-     * https://stackoverflow.com/questions/37472273/detect-single-key-press-in-javafx
-     * Original author: Lisek from stackoverflow
-     */
-    private void setupKeyboard(Scene scene) {
-
-        scene.setOnKeyPressed(this.keyPressed);
-
-        AnimationTimer rectUpdater = new AnimationTimer() {
-            private Rectangle[][] tetronimos = this.tetronimos;
-
-            @Override
-            public void handle(long l) {
-                Block[] blocks = MainViewFX.myGame.getArrayBlocks();
-
-                int counter = 0;
-
-                for (Rectangle[] rectArr : this.tetronimos) {
-                    for (Rectangle rect : rectArr) {
-                        rect.setFill(blocks[counter].getColor());
-                    }
-                }
-            }
-
-        };
-        rectUpdater.start();
-    }
-
-    /**
      * Calls the tick method of the Game object to move down the current block.
      */
     public void drop() {
         System.out.println("Block Drop!");
         myGame.tick(false, 0);
-        setLastDownTime(System.currentTimeMillis());
     }
 
     public void updateRectangles() {
         //System.out.println("Rectangle Update!");
         Block[] blocks = MainViewFX.myGame.getArrayBlocks();
 
+        // Reset all colors to default
         for (Rectangle[] rectArr : this.tetronimos) {
             for (Rectangle rect : rectArr) {
                 rect.setFill(Color.web(this.tetronimoDefaultColor));
             }
         }
 
+        // Add any Block colors to the Rectangle Array
         for (Block block : blocks) {
             if (block != null) {
                 this.tetronimos[block.getPositionY()][block.getPositionX()].setFill(block.getColor());
@@ -270,17 +197,21 @@ public class MainViewFX extends Application {
 
     }
 
+    /**
+     * Handles Keyboard events.
+     */
     private EventHandler<KeyEvent> keyPressed = new EventHandler<KeyEvent>() {
         @Override
         public void handle(KeyEvent event) {
             //System.out.println(myGame.toString());
+            
+            // Gets the name of the key, aka the unicode character
             String keyName = event.getCode().getName();
             //System.out.println(event.getCode().getName());
 
             if (keyName.equals("S")) {
                 //System.out.println("mov down");
                 myGame.tick(false, 0);
-                setLastDownTime(System.currentTimeMillis());
                 updateRectangles();
             }
 
@@ -308,14 +239,5 @@ public class MainViewFX extends Application {
                 updateRectangles();
             }
         }
-    };
-
-    private Runnable autoDropper = new Runnable() {
-        @Override
-        public void run() {
-            myGame.tick(false, 0);
-            //setLastDownTime(System.currentTimeMillis());
-        }
-
     };
 }

@@ -1,9 +1,5 @@
 
-import javafx.animation.Animation;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.scene.paint.Color;
-import javafx.util.Duration;
 
 /**
  * Controls the game logic of Tetris via Block objects.
@@ -147,6 +143,7 @@ public class Game {
             this.arrayBlocks[this.player.blockFalling.getPositionX() * this.player.blockFalling.getPositionY()] = this.player.blockFalling;
         }
 
+        // If the method was called with user input, parse it and then do the respective move.
         if (isUserInput) {
             System.out.println("User input detected: " + userInput);
             switch (userInput) {
@@ -165,6 +162,7 @@ public class Game {
             }
         }
 
+        // If true, call the printScreen method. Used for debugging.
         if (this.PRINT_TO_TERMINAL) {
             this.printScreen();
         }
@@ -200,11 +198,19 @@ public class Game {
 
     }
 
+    /**
+     * Returns the width and height assigned to this game object.
+     * @return 
+     */
     @Override
     public String toString() {
         return this.gridHeight + "  " + this.gridWidth;
     }
 
+    /**
+     * Used to iterate over 7 different colors in a sequential fashion. Returns a javaFX color object.
+     * @return next Color
+     */
     public Color getNextColor() {
         switch (this.colorInt) {
             case 0:
