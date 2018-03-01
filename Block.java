@@ -43,15 +43,15 @@ public class Block {
     public Block(Block block) {
         this.game = block.game;
         this.tetromino = block.getTetromino();
-        this.setPositionX(block.getPositionX());
-        this.setPositionY(block.getPositionX());
+        this.positionX = block.getPositionX();
+        this.positionY = block.getPositionY();
         this.color = block.getColor();
     }
 
-    public Block(Game game, Color c) {
+    public Block(Game game, Color c, int x, int y) {
         this.game = game;
-        this.setPositionX(this.game.getBlockSpawnX());
-        this.setPositionY(this.game.getBlockSpawnY());
+        this.setPositionX(x);
+        this.setPositionY(y);
         this.color = c;
     }
 
@@ -164,16 +164,11 @@ public class Block {
      * @param positionY
      */
     public Block checkColliding(int positionX, int positionY) {
-        Block[] blocks = this.game.getArrayBlocks();
-        for (int blockIndex = 0; blockIndex < blocks.length; blockIndex++) {
-            Block otherBlock = blocks[blockIndex];
-            if (otherBlock != this && otherBlock != null) {
-                if (positionX == otherBlock.getPositionX() && positionY == otherBlock.getPositionY()) {
-                    return otherBlock;
-                }
-            }
-        }
-        return null;
+        Block block = this.game.getArrayBlocks()[positionX + (this.getGame().getGridWidth()*positionY)];
+		if (block != this && block != null) {
+			return block;
+		}
+		return null;
     }
 
     public Color getColor() {
