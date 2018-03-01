@@ -1,5 +1,9 @@
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 
 /**
  * Controls the game logic of Tetris via Block objects.
@@ -31,6 +35,11 @@ public class Game {
 
     // Used to control the next color iterated over for the blocks.
     private int colorInt = 0;
+
+    /**
+     * Prints to terminal with the game grid each turn if true.
+     */
+    public final boolean PRINT_TO_TERMINAL = false;
 
     //Getters for the width, height, blocks, spawn coordinates, player and running the game.
     public int getGridWidth() {
@@ -83,6 +92,7 @@ public class Game {
      * the block fall automatically.
      */
     public Game(int width, int height) {
+        //System.out.println(width + "   " + height);
         this.gridWidth = width;
         this.gridHeight = height;
 
@@ -92,7 +102,6 @@ public class Game {
         this.blockSpawnY = 0;
 
         this.arrayBlocks = new Block[this.gridWidth * this.gridHeight];
-
     }
 
     /**
@@ -121,8 +130,8 @@ public class Game {
      * @param isUserInput
      * @param userInput
      */
-    public void tick(boolean shouldTerminalPrint, boolean isUserInput, int userInput) {
-        System.out.println("Tick!");
+    public void tick(boolean isUserInput, int userInput) {
+        //System.out.println("Tick!");
         // If no falling block exists or the current falling block has stopped falling (Collided), create a new block
         if (this.player.blockFalling == null || !this.player.blockFalling.getFalling()) {
             this.createBlock(getNextColor());
@@ -156,7 +165,7 @@ public class Game {
             }
         }
 
-        if (shouldTerminalPrint) {
+        if (this.PRINT_TO_TERMINAL) {
             this.printScreen();
         }
     }

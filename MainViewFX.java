@@ -1,17 +1,18 @@
 
-import javafx.animation.Animation;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
 /**
  * For future use when we need to use a GUI.
@@ -33,17 +34,19 @@ public class MainViewFX extends Application {
     private final String tetronimoDefaultColor = "FFFFFF";
     private final String tetronimoBackgroundColor = "80BFFF";
 
-    private static int autoFall;
-    private long lastFall;
-    
     // Width and height of tetris grid
-    private static int width;
-    private static int height;
-    
+    private static int width, height;
+
+    // Main game object
     public static Game myGame;
-    
+
+    // Main Scene object
+    private Scene mainScene;
+
     // Rectangle representation of the tetris grid
-    private Rectangle[][] teronimos;
+    private Rectangle[][] tetronimos;
+
+    private static long autoFall, lastFall;
 
     /**
      * Launches the GUI window.
@@ -54,12 +57,10 @@ public class MainViewFX extends Application {
      * @param autoFall
      */
     public void init(String[] args, int width, int height, int autoFall) {
-        this.autoFall = autoFall;
         myGame = new Game(width, height);
-        this.width = width;
-        this.height = height;
-        System.out.println("Game launched");
-        System.out.println("Game started");
+        MainViewFX.autoFall = autoFall;
+        MainViewFX.width = width;
+        MainViewFX.height = height;
         launch(args);
 
     }
@@ -72,6 +73,26 @@ public class MainViewFX extends Application {
     @Override
     public void start(Stage primaryStage) {
 
+        Task task = new Task<Void>() {
+            @Override
+            public Void call() throws Exception {
+                int i = 0;
+                while (true) {
+                    final int finalI = i;
+                    Platform.runLater(() -> {
+                        //System.out.println("AutoFall!");
+                        myGame.tick(false, -1);
+                        updateRectangles();
+                    });
+                    i++;
+                    Thread.sleep(MainViewFX.autoFall);
+                }
+            }
+        };
+        Thread th = new Thread(task);
+        th.setDaemon(true);
+        th.start();
+
         primaryStage.setTitle("Tetris V01");
 
         // The root pane, has a basic layout allowing other panes to go on top
@@ -83,12 +104,15 @@ public class MainViewFX extends Application {
         root.setCenter(addTetrisPane());
 
         // Creates a scene, which is what is actually displayed. Uses the root pane.
-        Scene scene = new Scene(root);
+        mainScene = new Scene(root);
+        
 
-        setupKeyboard(scene);
+        //setupKeyboard(mainScene);
+        mainScene.setOnKeyPressed(keyPressed);
 
         // Sets the scene, and shows it to the user.
-        primaryStage.setScene(scene);
+        primaryStage.setScene(mainScene);
+        
         primaryStage.show();
     }
 
@@ -106,15 +130,16 @@ public class MainViewFX extends Application {
         tetrisPane.setVgap(4);
         tetrisPane.setHgap(4);
         tetrisPane.setPrefWrapLength(MainViewFX.width * 79); // preferred width allows for two columns
-        
+
         //System.out.println(this.height + " " + this.width);
-       this.teronimos = new Rectangle[MainViewFX.height][MainViewFX.width];
-        
-        for(Rectangle[] rectLine : this.teronimos){
-            for(Rectangle rect : rectLine){
-                rect = new Rectangle(75, 75);
+        this.tetronimos = new Rectangle[MainViewFX.height][MainViewFX.width];
+
+        for (int outer = 0; outer < this.tetronimos.length; outer++) {
+            for (int inner = 0; inner < this.tetronimos[outer].length; inner++) {
+                Rectangle rect = new Rectangle(75, 75);
                 rect.setFill(Color.web(this.tetronimoDefaultColor));
                 tetrisPane.getChildren().add(rect);
+                this.tetronimos[outer][inner] = rect;
             }
         }
 
@@ -153,21 +178,26 @@ public class MainViewFX extends Application {
      * @deprecated
      */
     private void passMove(boolean isDropdown, int move) {
-        System.out.println("Game tick");
-        myGame.tick(true, isDropdown, move);
+        //System.out.println("Game tick");
+        myGame.tick(isDropdown, move);
     }
 
     /**
      * Gets the last time is system milliseconds that the block was moved down.
-     * @return 
+     *
+     * @return
+     * @deprecated
      */
     private long getLastDownTime() {
         return this.lastFall;
     }
 
     /**
-     * Sets the last system time that the block was moved down, either from user input or the auto timer.
-     * @param time 
+     * Sets the last system time that the block was moved down, either from user
+     * input or the auto timer.
+     *
+     * @param time
+     * @deprecated
      */
     private void setLastDownTime(long time) {
         this.lastFall = time;
@@ -175,10 +205,11 @@ public class MainViewFX extends Application {
 
     /**
      * Returns the delay between the block falling currently.
+     *
      * @return delay
-     * @deprecated 
+     * @deprecated
      */
-    private int getDownDelay() {
+    private long getDownDelay() {
         return this.autoFall;
     }
 
@@ -190,54 +221,101 @@ public class MainViewFX extends Application {
      */
     private void setupKeyboard(Scene scene) {
 
-        scene.setOnKeyPressed(event -> {
-            System.out.println(myGame.toString());
-            String keyName = event.getCode().getName();
-            System.out.println(event.getCode().getName());
+        scene.setOnKeyPressed(this.keyPressed);
 
-            if (keyName.equals("S")) {
-                System.out.println("mov down");
-                myGame.tick(true, false, 0);
-                setLastDownTime(System.currentTimeMillis());
+        AnimationTimer rectUpdater = new AnimationTimer() {
+            private Rectangle[][] tetronimos = this.tetronimos;
+
+            @Override
+            public void handle(long l) {
+                Block[] blocks = MainViewFX.myGame.getArrayBlocks();
+
+                int counter = 0;
+
+                for (Rectangle[] rectArr : this.tetronimos) {
+                    for (Rectangle rect : rectArr) {
+                        rect.setFill(blocks[counter].getColor());
+                    }
+                }
             }
 
-            if (keyName.equals("A")) {
-                System.out.println("mov left");
-                myGame.tick(true, true, 1);
-            }
-
-            if (keyName.equals("D")) {
-                System.out.println("mov right");
-                myGame.tick(true, true, 2);
-            }
-
-            if (keyName.equals("Q")) {
-                System.out.println("rot left");
-                myGame.tick(true, true, 3);
-            }
-
-            if (keyName.equals("E")) {
-                System.out.println("rot right");
-                myGame.tick(true, true, 4);
-            }
-        });
-
-        Timeline timeline = new Timeline(new KeyFrame(
-                Duration.millis(2500),
-                ae -> drop()));
-        timeline.setCycleCount(Animation.INDEFINITE);
-        timeline.play();
+        };
+        rectUpdater.start();
     }
 
     /**
      * Calls the tick method of the Game object to move down the current block.
      */
     public void drop() {
-        myGame.tick(true, false, 0);
+        System.out.println("Block Drop!");
+        myGame.tick(false, 0);
         setLastDownTime(System.currentTimeMillis());
     }
-    
-    public void updateRectangles(){
-        
+
+    public void updateRectangles() {
+        //System.out.println("Rectangle Update!");
+        Block[] blocks = MainViewFX.myGame.getArrayBlocks();
+
+        for (Rectangle[] rectArr : this.tetronimos) {
+            for (Rectangle rect : rectArr) {
+                rect.setFill(Color.web(this.tetronimoDefaultColor));
+            }
+        }
+
+        for (Block block : blocks) {
+            if (block != null) {
+                this.tetronimos[block.getPositionY()][block.getPositionX()].setFill(block.getColor());
+            }
+        }
+
     }
+
+    private EventHandler<KeyEvent> keyPressed = new EventHandler<KeyEvent>() {
+        @Override
+        public void handle(KeyEvent event) {
+            //System.out.println(myGame.toString());
+            String keyName = event.getCode().getName();
+            //System.out.println(event.getCode().getName());
+
+            if (keyName.equals("S")) {
+                //System.out.println("mov down");
+                myGame.tick(false, 0);
+                setLastDownTime(System.currentTimeMillis());
+                updateRectangles();
+            }
+
+            if (keyName.equals("A")) {
+                //System.out.println("mov left");
+                myGame.tick(true, 1);
+                updateRectangles();
+            }
+
+            if (keyName.equals("D")) {
+                //System.out.println("mov right");
+                myGame.tick(true, 2);
+                updateRectangles();
+            }
+
+            if (keyName.equals("Q")) {
+                //System.out.println("rot left");
+                myGame.tick(true, 3);
+                updateRectangles();
+            }
+
+            if (keyName.equals("E")) {
+                //System.out.println("rot right");
+                myGame.tick(true, 4);
+                updateRectangles();
+            }
+        }
+    };
+
+    private Runnable autoDropper = new Runnable() {
+        @Override
+        public void run() {
+            myGame.tick(false, 0);
+            //setLastDownTime(System.currentTimeMillis());
+        }
+
+    };
 }
