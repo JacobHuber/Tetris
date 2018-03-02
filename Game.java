@@ -177,6 +177,61 @@ public class Game {
         if (this.PRINT_TO_TERMINAL) {
             this.printScreen();
         }
+        
+        if (!this.tetrominoFalling.getFalling()){
+            this.score += clearLines();
+        }
+    }
+    
+    /**
+     * Checks if any lines need to be cleared (a horizontal line on the game grid is completely filled with blocks),
+     * if so then those lines are cleared and the rest of the blocks are moved down. 
+     * The return is the amount of lines cleared.
+     *
+     * @return int
+     */
+    public int clearLines() {
+        int linesCleared = 0;
+        
+        for (int line = this.getGridHeight() - 1; line >= 0; line--) {
+            boolean solid = true;
+            
+            // Checks if the current line is a solid line of blocks.
+            for (int col = 0; col < this.getGridWidth(); col++) {
+                if (this.getArrayBlocks()[col + line * this.getGridWidth()] == null) {
+                    solid = false;
+                    break;
+                }
+            }
+
+            if (solid) {
+                Block[] manipBlocks = this.getArrayBlocks();
+
+                // Clear reference for any blocks to remove any collision problems.
+                this.arrayBlocks = new Block[this.getGridWidth()*this.getGridHeight()];
+
+                // Removes all the blocks in the line.
+                for (int i = line * this.getGridWidth(); i < (line+1) * this.getGridWidth(); i++) {
+                    manipBlocks[i] = null;
+                }
+
+                // Moves all blocks above the cleared line down.
+                for (int i = line * this.getGridWidth() - 1; i >= 0; i--) {
+                    Block b = manipBlocks[i];
+                    if (b != null) {
+                        removeBlock(b, manipBlocks);
+                        b.moveDown();
+                        updateBlock(b, manipBlocks);
+                    }
+                }
+
+                linesCleared += 1;
+                line += 1;
+                this.arrayBlocks = manipBlocks;
+            }
+
+        }
+        return linesCleared;
     }
     
     public void updateBlock(Block block) {
