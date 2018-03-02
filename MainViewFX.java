@@ -44,6 +44,7 @@ public class MainViewFX extends Application {
 
     // Rectangle representation of the tetris grid
     private Rectangle[][] tetronimos;
+    private final int RECTANGLE_SIZE = 50;
 
     private static long autoFall, lastFall;
 
@@ -128,7 +129,7 @@ public class MainViewFX extends Application {
         tetrisPane.setPadding(new Insets(5, 10, 5, 10));
         tetrisPane.setVgap(4);
         tetrisPane.setHgap(4);
-        tetrisPane.setPrefWrapLength(MainViewFX.width * 79); // preferred width allows for two columns
+        tetrisPane.setPrefWrapLength(MainViewFX.width * (this.RECTANGLE_SIZE + 4)); // preferred width allows for two columns
 
         //System.out.println(this.height + " " + this.width);
         this.tetronimos = new Rectangle[MainViewFX.height][MainViewFX.width];
@@ -136,7 +137,7 @@ public class MainViewFX extends Application {
         // Generates the Rectangle Matrix with default colors
         for (int outer = 0; outer < this.tetronimos.length; outer++) {
             for (int inner = 0; inner < this.tetronimos[outer].length; inner++) {
-                Rectangle rect = new Rectangle(75, 75);
+                Rectangle rect = new Rectangle(this.RECTANGLE_SIZE, this.RECTANGLE_SIZE);
                 rect.setFill(Color.web(this.tetronimoDefaultColor));
                 tetrisPane.getChildren().add(rect);
                 this.tetronimos[outer][inner] = rect;

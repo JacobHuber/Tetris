@@ -7,7 +7,7 @@ public class Tetris {
      */
     public static void main(String[] args) {
         MainViewFX main = new MainViewFX();
-        main.init(args, 10, 20, 1000);
+        main.init(args, 10, 15, 1000);
     }
 
 }

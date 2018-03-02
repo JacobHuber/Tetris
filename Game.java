@@ -25,12 +25,16 @@ public class Game {
     private int blockSpawnX;
     private int blockSpawnY;
 
-    private Player player;
-
     private boolean gameRunning = true;
 
     // Used to control the next color iterated over for the blocks.
     private int colorInt = 0;
+    
+    // The current falling block.
+    private Tetromino tetrominoFalling;
+
+    // The block that is stored/held (This feature has yet to be implemented).
+    private Tetromino tetrominoHold;
 
     /**
      * Prints to terminal with the game grid each turn if true.
@@ -46,10 +50,14 @@ public class Game {
         return this.gridHeight;
     }
 
+    /**
+     * Gets the array of Blocks that represents the Tetris grid.
+     * @return 
+     */
     public Block[] getArrayBlocks() {
         return this.arrayBlocks;
     }
-
+    
     public int getBlockSpawnX() {
         return this.blockSpawnX;
     }
@@ -58,29 +66,28 @@ public class Game {
         return this.blockSpawnY;
     }
 
-    public Player getPlayer() {
-        return this.player;
-    }
-
     public boolean getGameRunning() {
         return this.gameRunning;
     }
 
-    // Setters for the spawn coordinates, player and running the game.
+    /**
+     * Sets the X position for the block to spawn on.
+     * @param blockSpawnX 
+     */
     public void setBlockSpawnX(int blockSpawnX) {
         if (blockSpawnX >= 0 && blockSpawnX < this.getGridWidth()) {
             this.blockSpawnX = blockSpawnX;
         }
     }
 
+    /**
+     * Sets the Y position for the block to spawn on.
+     * @param blockSpawnY 
+     */
     public void setBlockSpawnY(int blockSpawnY) {
         if (blockSpawnY >= 0 && blockSpawnY < this.getGridHeight()) {
             this.blockSpawnY = blockSpawnY;
         }
-    }
-
-    public void setPlayer(Player player) {
-        this.player = player;
     }
 
     /**
@@ -91,8 +98,6 @@ public class Game {
         //System.out.println(width + "   " + height);
         this.gridWidth = width;
         this.gridHeight = height;
-
-        this.player = new Player();
 
         this.blockSpawnX = this.gridWidth / 2;
         this.blockSpawnY = 0;
@@ -109,9 +114,9 @@ public class Game {
         
         // Temporary block creation (Should be randomized in the future.)
         Block[] blocks = {new Block(this, c, 5, 0), new Block(this, c, 4, 0), new Block(this, c, 6, 0), new Block(this, c, 5, 1)};
-        this.player.tetrominoFalling = new Tetromino(blocks, false);
+        this.tetrominoFalling = new Tetromino(blocks, false);
 
-        for (Block block : this.player.tetrominoFalling.getBlocks()) {
+        for (Block block : this.tetrominoFalling.getBlocks()) {
             updateBlock(block);
         }
     }
@@ -129,17 +134,17 @@ public class Game {
     public void tick(boolean isUserInput, int userInput) {
         System.out.println("Tick!");
         // If no falling block exists or the current falling block has stopped falling (Collided), create a new block
-        if (this.player.tetrominoFalling == null || !this.player.tetrominoFalling.getFalling()) {
+        if (this.tetrominoFalling == null || !this.tetrominoFalling.getFalling()) {
             this.createBlock(getNextColor());
         }
 
         // Clear the reference from the previous array spot to the falling block)
-        for (Block block : this.player.tetrominoFalling.getBlocks()) {
+        for (Block block : this.tetrominoFalling.getBlocks()) {
             removeBlock(block);
         }
         
         if (!isUserInput || userInput == 0) {
-            this.player.tetrominoFalling.move(0, 1);
+            this.tetrominoFalling.move(0, 1);
         }
 
         // If the method was called with user input, parse it and then do the respective move.
@@ -147,24 +152,24 @@ public class Game {
             System.out.println("User input detected: " + userInput);
             switch (userInput) {
                 case 1:
-                    this.player.tetrominoFalling.move(-1, 0);
+                    this.tetrominoFalling.move(-1, 0);
                     break;
                 case 2:
-                    this.player.tetrominoFalling.move(1, 0);
+                    this.tetrominoFalling.move(1, 0);
                     break;
                 case 3:
                     // CCW
-                    this.player.tetrominoFalling.rotate(false);
+                    this.tetrominoFalling.rotate(false);
                     break;
                 case 4:
                     // CW
-                    this.player.tetrominoFalling.rotate(true);
+                    this.tetrominoFalling.rotate(true);
                     break;
             }
         }
 
         // Set a new reference to the falling block in its new position
-        for (Block block : this.player.tetrominoFalling.getBlocks()) {
+        for (Block block : this.tetrominoFalling.getBlocks()) {
             updateBlock(block);
         }
         
