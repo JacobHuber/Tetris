@@ -117,7 +117,7 @@ public class Game {
         this.tetrominoFalling = new Tetromino(blocks, false);
 
         for (Block block : this.tetrominoFalling.getBlocks()) {
-            updateBlock(block);
+            updateBlock(block, this.getArrayBlocks());
         }
     }
 
