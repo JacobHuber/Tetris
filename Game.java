@@ -140,7 +140,7 @@ public class Game {
 
         // Clear the reference from the previous array spot to the falling block)
         for (Block block : this.tetrominoFalling.getBlocks()) {
-            removeBlock(block);
+            removeBlock(block, this.getArrayBlocks());
         }
         
         if (!isUserInput || userInput == 0) {
@@ -170,7 +170,7 @@ public class Game {
 
         // Set a new reference to the falling block in its new position
         for (Block block : this.tetrominoFalling.getBlocks()) {
-            updateBlock(block);
+            updateBlock(block, this.getArrayBlocks());
         }
         
         // If true, call the printScreen method. Used for debugging.
@@ -234,15 +234,15 @@ public class Game {
         return linesCleared;
     }
     
-    public void updateBlock(Block block) {
+    public void updateBlock(Block block, Block[] arrayBlocks) {
         if (block != null) {
-            this.arrayBlocks[block.getPositionX() + (this.getGridWidth()*block.getPositionY())] = block;
+            arrayBlocks[block.getPositionX() + (this.getGridWidth()*block.getPositionY())] = block;
         }
     }
 
-    public void removeBlock(Block block) {
+    public void removeBlock(Block block, Block[] arrayBlocks) {
         if (block != null) {
-            this.arrayBlocks[block.getPositionX() + (this.getGridWidth()*block.getPositionY())] = null;
+            arrayBlocks[block.getPositionX() + (this.getGridWidth()*block.getPositionY())] = null;
         }
     }
 
