@@ -26,7 +26,7 @@ import javafx.stage.FileChooser;
  */
 public class InitPopup {
 
-    boolean isComplete = false;
+    private boolean isComplete = false;
 
     private final String hexGrey1 = "4A444B";
     private final String hexRed = "BA0101";
@@ -51,13 +51,18 @@ public class InitPopup {
 
     private TextField HeightStrText = new TextField();
     private TextField WidthStrText = new TextField();
-
+    private TextField AutoFallStrText = new TextField();
+    
     private Button ContinueBtn = new Button("Continue");
 
     private boolean isDebug = false;
 
     private Node confirmButton;
 
+    private Dimension tetrisDimensions;
+    
+    private int autoFall;
+    
     private void createStage() {         // creates the GUI for the popup
         Dialog dialog = new Dialog<>();
         dialog.setTitle("Holonyak V1.0: PanelClear");
@@ -72,7 +77,7 @@ public class InitPopup {
         ToggleButton DebugBtn = new ToggleButton("Debug mode");
 
         Button LogBtn = new Button(logFolderStr);
-        Button LoadSettings = new Button("Load high scores from file");
+        Button LoadScoreBtn = new Button("Load high scores from file");
 
         this.ContinueBtn.setDisable(true);
 
@@ -89,16 +94,8 @@ public class InitPopup {
             }
         });
 
-        /*
-        Save folder syntax:
-            [isMatrix],[stripLength],[StripWidth],[pin],[Pattern folder], [Log folder]
-         */
         DebugBtn.setOnAction((ActionEvent event) -> {
-            if (this.isDebug) {
-                this.isDebug = false;
-            } else {
-                this.isDebug = true;
-            }
+            this.isDebug = !this.isDebug;
             checkData();
         });
 
@@ -110,13 +107,14 @@ public class InitPopup {
             File selectedFolder = saveChooser.showSaveDialog(dialog.getOwner());
             if (selectedFolder == null) {
                 AlertBox alert = new AlertBox(new Dimension(400, 100), "Folder Error", "Error selecting folder. Try again.");
+                Kaizen_85.newEvent("A folder was selected as null");
                 alert.display();
             } else {
 
             }
         });
 
-        LoadSettings.setOnAction((ActionEvent event) -> {
+        LoadScoreBtn.setOnAction((ActionEvent event) -> {
             String folder;
             String loadString;
             FileChooser loadChooser = new FileChooser();
@@ -138,12 +136,13 @@ public class InitPopup {
         this.WidthStrText.setMaxWidth(90);
         this.WidthStrText.setDisable(true);
 
-        grid.add(new Label("Length and width of the LED strip:"), 0, 0);
+        grid.add(new Label("Length and width of the Tetris Grid:"), 0, 0);
         grid.add(this.HeightStrText, 1, 0);
         grid.add(this.WidthStrText, 2, 0);
-        grid.add(new Label("Please choose a folder for the logs:"), 0, 4);
+        grid.add(new Label("Please choose a file for high scores:"), 0, 3);
+        grid.add(LoadScoreBtn, 1, 3);
+        grid.add(new Label("Please choose a file for the logs:"), 0, 4);
         grid.add(LogBtn, 1, 4);
-        grid.add(LoadSettings, 0, 5);
         grid.add(ContinueBtn, 1, 5);
         grid.add(DebugBtn, 0, 6);
         grid.setGridLinesVisible(false);
@@ -152,9 +151,7 @@ public class InitPopup {
         confirmButton.setDisable(true);
 
         // Do some validation (using the Java 8 lambda syntax).
-        HeightStrText.textProperty().addListener((observable, oldValue, newValue) -> {
-            //System.out.println("Text box change observed.");
-            //confirmButton.setDisable(newValue.trim().isEmpty());
+        this.HeightStrText.textProperty().addListener((observable, oldValue, newValue) -> {
             checkData();
         });
         this.WidthStrText.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -172,11 +169,14 @@ public class InitPopup {
      * Ensures the user enters certain data before they can continue
      */
     private void checkData() {    // makes sure the data entered is formattable
-        Kaizen_85.newEvent("Data check for init dialog, path folder is " + Kaizen_85.getLogPath() + " and the current LED text field entry is " + HeightStrText.getText());
+        Kaizen_85.newEvent("Data check for init dialog, path folder is " + Kaizen_85.getLogPath() + " and the current Tetris Grid dimensions are " + HeightStrText.getText() + " high by " + WidthStrText.getText() + " Wide.");
         boolean intParsable = false;
 
         try {
-            int i = Integer.parseInt(this.HeightStrText.getText());
+            int height = Integer.parseInt(this.HeightStrText.getText());
+            int width = Integer.parseInt(this.WidthStrText.getText());
+            this.tetrisDimensions = new Dimension(height, width);
+            
             intParsable = true;
         } catch (NumberFormatException e) {
             //System.err.println("Number entered on init panel is invalid, please try again.");
@@ -191,5 +191,13 @@ public class InitPopup {
 
         this.ContinueBtn.setDisable(!(SaverLoader.checkScorePath() && Kaizen_85.checkLogPath()));
     }
-
+    
+    public Dimension getTetrisGridDimensions(){
+        return this.tetrisDimensions;
+    }
+    
+    public int getAutoFall(){
+        return this.autoFall;
+    }
+            
 }
