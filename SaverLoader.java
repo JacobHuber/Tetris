@@ -8,26 +8,22 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 /**
- *
+ *  Loads and saves high scores.
+ *  Note: Need to ensure it doesn't overwrite old scores
  * @author kell-gigabyte
  */
 public class SaverLoader {
 
-    private static String highScoreFolder;
-
+    private static File  highScoreFolder;
+    
     private static ArrayList<Integer> highScoreList = new ArrayList<>();
 
-    public static void setHighScoreFolder(String folder) {
+    public static void setHighScoreFolder(File folder) {
         highScoreFolder = folder;
     }
 
-    public static String getHighScoreFolder() {
+    public static File getHighScoreFolder() {
         return highScoreFolder;
     }
 
@@ -38,7 +34,7 @@ public class SaverLoader {
             return false;
         } else {
             try {
-                Scanner file = new Scanner(new File(highScoreFolder));
+                Scanner file = new Scanner(highScoreFolder);
                 String temp;
                 while (file.hasNext()) {
                     temp = file.nextLine();
@@ -85,12 +81,12 @@ public class SaverLoader {
             printer.println("Print Test Please Ignore");
             printer.close();
             fw.close();
-            AlertBox alert = new AlertBox(new Dimension(200, 100), "Success", "Success saving settings.");
-            alert.display();
+            //AlertBox alert = new AlertBox(new Dimension(200, 100), "Success", "Success saving settings.");
+            //alert.display();
             return true;
         } catch (IOException ex) {
-            AlertBox alert = new AlertBox(new Dimension(400, 100), "Folder Error", "Error writing to folder. Try again.");
-            alert.display();
+            //AlertBox alert = new AlertBox(new Dimension(400, 100), "Folder Error", "Error writing to folder. Try again.");
+            //alert.display();
             return false;
         }
     }

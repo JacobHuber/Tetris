@@ -1,6 +1,7 @@
 
 import java.io.File;
 import java.awt.Dimension;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -9,6 +10,7 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.GridPane;
@@ -16,10 +18,7 @@ import javafx.stage.FileChooser;
 
 /**
  * This class is meant to be called in order to create a dialogue window, which
- * has several text boxes to get info from the user, like the size of the LED
- * strip, and if it is standard RGB or has a extra led, like the RBGW strips.
- * Should also detect if it cannot properly format the data entered, and ask for
- * it again, with the incorrect text boxes being cleared/highlighted.
+ * has several text boxes to get info from the user.
  *
  *
  * @author kell-gigabyte
@@ -45,63 +44,48 @@ public class InitPopup {
         return this.isComplete;
     }
 
-    private void setLogFolder(String s) {
+    private void setLogFolder(File s) {
         Kaizen_85.setLogPath(s);
     }
 
     private TextField HeightStrText = new TextField();
     private TextField WidthStrText = new TextField();
+
     private TextField AutoFallStrText = new TextField();
-    
-    private Button ContinueBtn = new Button("Continue");
+    private Slider AutoFallSlider = new Slider();
 
     private boolean isDebug = false;
 
     private Node confirmButton;
 
     private Dimension tetrisDimensions;
-    
-    private int autoFall;
-    
+
+    private int autoFall = 0;
+
+    private File logFile;
+
+    private File scoreFile;
+
     private void createStage() {         // creates the GUI for the popup
         Dialog dialog = new Dialog<>();
-        dialog.setTitle("Holonyak V1.0: PanelClear");
+        dialog.setTitle("Tetris!");
         //dialog.setHeaderText("Hello, I'd just like you to let me know about your LED strip.");
 
         ButtonType confirmButtonType = new ButtonType("Enter", ButtonData.APPLY);
         dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType);
         dialog.getDialogPane().setStyle("-fx-background-color: #" + this.hexGrey1 + ";");
 
-        String logFolderStr = "Log Folder";
-
         ToggleButton DebugBtn = new ToggleButton("Debug mode");
 
-        Button LogBtn = new Button(logFolderStr);
-        Button LoadScoreBtn = new Button("Load high scores from file");
-
-        this.ContinueBtn.setDisable(true);
-
-        LogBtn.setOnAction((ActionEvent event) -> {
-            FileChooser saveChooser = new FileChooser();
-            saveChooser.setInitialDirectory(new File(System.getProperty("user.home")));
-            File selectedFolder = saveChooser.showSaveDialog(dialog.getOwner());
-            if (selectedFolder == null) {
-            } else {
-
-                setLogFolder(selectedFolder.getAbsolutePath());
-                //System.out.println(selectedFolder.getAbsolutePath());
-                checkData();
-            }
-        });
+        Button LogBtn = new Button("Log Folder");
+        Button LoadScoreBtn = new Button("High Score Folder");
 
         DebugBtn.setOnAction((ActionEvent event) -> {
             this.isDebug = !this.isDebug;
             checkData();
         });
 
-        ContinueBtn.setOnAction((ActionEvent event) -> {
-            String folder;
-            String saveString;
+        LogBtn.setOnAction((ActionEvent event) -> {
             FileChooser saveChooser = new FileChooser();
             saveChooser.setInitialDirectory(new File(System.getProperty("user.home")));
             File selectedFolder = saveChooser.showSaveDialog(dialog.getOwner());
@@ -110,17 +94,23 @@ public class InitPopup {
                 Kaizen_85.newEvent("A folder was selected as null");
                 alert.display();
             } else {
-
+                this.logFile = selectedFolder;
+                checkData();
             }
         });
 
         LoadScoreBtn.setOnAction((ActionEvent event) -> {
-            String folder;
-            String loadString;
-            FileChooser loadChooser = new FileChooser();
-            loadChooser.setInitialDirectory(new File(System.getProperty("user.home")));
-            File selectedFolder = loadChooser.showOpenDialog(dialog.getOwner());
-
+            FileChooser saveChooser = new FileChooser();
+            saveChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+            File selectedFolder = saveChooser.showSaveDialog(dialog.getOwner());
+            if (selectedFolder == null) {
+                AlertBox alert = new AlertBox(new Dimension(400, 100), "Folder Error", "Error selecting folder. Try again.");
+                Kaizen_85.newEvent("A folder was selected as null");
+                alert.display();
+            } else {
+                this.scoreFile = selectedFolder;
+                checkData();
+            }
         });
 
         GridPane grid = new GridPane();
@@ -134,17 +124,26 @@ public class InitPopup {
 
         this.WidthStrText.setPromptText("Width");
         this.WidthStrText.setMaxWidth(90);
-        this.WidthStrText.setDisable(true);
+
+        this.AutoFallStrText.setPromptText("Fall Delay");
+        this.AutoFallStrText.setMaxWidth(120);
+        this.AutoFallStrText.setText("" + this.autoFall);
+
+        this.AutoFallSlider.setMin(0);
+        this.AutoFallSlider.setMax(3000);
+        this.AutoFallSlider.setValue(this.autoFall);
 
         grid.add(new Label("Length and width of the Tetris Grid:"), 0, 0);
         grid.add(this.HeightStrText, 1, 0);
         grid.add(this.WidthStrText, 2, 0);
+        grid.add(new Label("Beginning Drop speed:"), 0, 1);
+        grid.add(this.AutoFallStrText, 1, 1);
+        grid.add(this.AutoFallSlider, 2, 1);
         grid.add(new Label("Please choose a file for high scores:"), 0, 3);
         grid.add(LoadScoreBtn, 1, 3);
         grid.add(new Label("Please choose a file for the logs:"), 0, 4);
         grid.add(LogBtn, 1, 4);
-        grid.add(ContinueBtn, 1, 5);
-        grid.add(DebugBtn, 0, 6);
+        grid.add(DebugBtn, 0, 5);
         grid.setGridLinesVisible(false);
 
         this.confirmButton = dialog.getDialogPane().lookupButton(confirmButtonType);
@@ -157,10 +156,18 @@ public class InitPopup {
         this.WidthStrText.textProperty().addListener((observable, oldValue, newValue) -> {
             checkData();
         });
+        this.AutoFallSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            updateText();
+            checkData();
+        });
+        this.AutoFallStrText.textProperty().addListener((observable, oldValue, newValue) -> {
+            updateSlider();
+            checkData();
+        });
         dialog.getDialogPane().setContent(grid);
 
         // Request focus on the username field by default.
-        //Platform.runLater(() -> HeightStrText.requestFocus());
+        Platform.runLater(() -> HeightStrText.requestFocus());
         Kaizen_85.newEvent("Initialization window created, showing.");
         dialog.showAndWait();
     }
@@ -173,10 +180,17 @@ public class InitPopup {
         boolean intParsable = false;
 
         try {
+            if ((int) this.AutoFallSlider.getValue() == this.autoFall) {
+                this.autoFall = Integer.parseInt(this.AutoFallStrText.getText());
+            } else {
+                this.autoFall = (int) Math.round(this.AutoFallSlider.getValue());
+            }
+
             int height = Integer.parseInt(this.HeightStrText.getText());
             int width = Integer.parseInt(this.WidthStrText.getText());
+            int autoFall = (int) this.AutoFallSlider.getValue();
             this.tetrisDimensions = new Dimension(height, width);
-            
+
             intParsable = true;
         } catch (NumberFormatException e) {
             //System.err.println("Number entered on init panel is invalid, please try again.");
@@ -188,16 +202,50 @@ public class InitPopup {
         } else {
             this.confirmButton.setDisable(true);
         }
-
-        this.ContinueBtn.setDisable(!(SaverLoader.checkScorePath() && Kaizen_85.checkLogPath()));
+        SaverLoader.setHighScoreFolder(this.scoreFile);
+        Kaizen_85.setLogPath(this.logFile);
+        this.confirmButton.setDisable(!(SaverLoader.checkScorePath() && Kaizen_85.checkLogPath()));
     }
-    
-    public Dimension getTetrisGridDimensions(){
+
+    public Dimension getTetrisGridDimensions() {
         return this.tetrisDimensions;
     }
-    
-    public int getAutoFall(){
+
+    public int getAutoFall() {
         return this.autoFall;
     }
-            
+
+    private void updateSlider() { // updates sliders from text fields
+        //Kaizen_85.newEvent("Values dupated from text flields to sliders.");
+        int red, green, blue;
+        if (this.AutoFallStrText.getText().equals("")) {
+            red = 0;
+        } else {
+            red = Integer.parseInt(this.AutoFallStrText.getText());
+        }
+
+        if (red > 3000) {
+            red = 3000;
+        } else if (red < 0) {
+            red = 0;
+        }
+
+        this.AutoFallSlider.setValue(red);
+    }
+
+    private void updateText() { // updates text fields from sliders
+        //Kaizen_85.newEvent("Values dupated from sliders to text fields.");
+        int red = (int) Math.round(this.AutoFallSlider.getValue());
+        if (red > 3000) {
+            red = 3000;
+        } else if (red < 0) {
+            red = 0;
+        }
+
+        String r = "" + red;
+
+        this.AutoFallStrText.setText(r);
+
+    }
+
 }

@@ -2,12 +2,16 @@
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -30,14 +34,19 @@ public class MainViewFX extends Application {
     private final String hexColorBox = "FFFFF0";
     private final String hexDelayBox = "78866B";
     private final String hexSliderBox = "90AFFF";
-    private final String tetronimoDefaultColor = "FFFFFF";
-    private final String tetronimoBackgroundColor = "80BFFF";
+    private final String tetronimoDefaultColor = "000";
+    private final String tetronimoBackgroundColor = "0F0F0F";
 
     // Width and height of tetris grid
     private static int width, height;
 
     // Main game object
     public static Game myGame;
+
+    // Score counter stuff.
+    public static int score = 0;
+    private static int lastKnownScore = 0;
+    private Label scoreLabel;
 
     // Main Scene object
     private Scene mainScene;
@@ -46,21 +55,14 @@ public class MainViewFX extends Application {
     private Rectangle[][] tetronimos;
     private final int RECTANGLE_SIZE = 50;
 
-    private static long autoFall, lastFall;
+    private static long autoFall;
 
     /**
      * Launches the GUI window.
      *
      * @param args
-     * @param width
-     * @param height
-     * @param autoFall
      */
-    public void init(String[] args, int width, int height, int autoFall) {
-        myGame = new Game(width, height);
-        MainViewFX.autoFall = autoFall;
-        MainViewFX.width = width;
-        MainViewFX.height = height;
+    public void init(String[] args) { //, int width, int height, int autoFall) {
         launch(args);
 
     }
@@ -73,6 +75,18 @@ public class MainViewFX extends Application {
     @Override
     public void start(Stage primaryStage) {
 
+        // Creates and runs the initialization window
+        InitPopup init = new InitPopup();
+        init.run();
+
+        //System.out.println("Width: " + init.getTetrisGridDimensions().width + "     Height: " + init.getTetrisGridDimensions().height + "        Fall TImer: " + init.getAutoFall());
+
+        // Gets values from the initialization window
+        MainViewFX.height = init.getTetrisGridDimensions().height;
+        MainViewFX.width = init.getTetrisGridDimensions().width;
+        MainViewFX.myGame = new Game(init.getTetrisGridDimensions().width, init.getTetrisGridDimensions().height);
+        autoFall = init.getAutoFall();
+        
         // Task to update the GUI and also cause the block to fall down every [MainViewFX.autoFall] Milliseconds.
         Task task = new Task<Void>() {
             @Override
@@ -100,9 +114,10 @@ public class MainViewFX extends Application {
         BorderPane root = new BorderPane();
 
         // Sets panes on top of the root pane
-        root.setRight(addScorePane(null));
+        //root.setRight(addHighScorePane());        //TODO
         root.setLeft(addNextBlockPane());
         root.setCenter(addTetrisPane());
+        root.setTop(addScorePane());
 
         // Creates a scene, which is what is actually displayed. Uses the root pane.
         mainScene = new Scene(root);
@@ -156,6 +171,29 @@ public class MainViewFX extends Application {
         return new VBox();
     }
 
+    private HBox addScorePane() {
+        HBox hbox = new HBox();
+        hbox.setPadding(new Insets(15, 12, 15, 12));
+        hbox.setSpacing(10);
+        hbox.setStyle("-fx-background-color: #" + this.hexDelayBox + ";");
+
+        this.scoreLabel = new Label("0");
+                this.scoreLabel.setMinWidth(100);
+        hbox.getChildren().add(this.scoreLabel);
+        
+        Button SaveBtn = new Button("Save Score");
+        SaveBtn.setOnAction((ActionEvent event) -> {
+          //  SaverLoader.newScore(Integer.parseInt(scoreLabel.getText())); // TODO: make this work
+          
+                // for now, when the save score button is pressed, logs are instead recorded. Will change later
+              Kaizen_85.panic();
+        });
+        
+        hbox.getChildren().add(SaveBtn);
+
+        return hbox;
+    }
+
     /**
      * Generates a pane with a scoreboard for high scores, displaying top 10,
      * and current score. Can either be given null, for no saved high scores, or
@@ -163,9 +201,13 @@ public class MainViewFX extends Application {
      *
      * @return Flowpane pane
      */
-    private FlowPane addScorePane(String highScoreFile) {
-        if (highScoreFile != null) {
+    private FlowPane addHighScorePane() {
+        boolean success = SaverLoader.LoadScores();
+        if (success) {
+            System.out.println(SaverLoader.getScoreList());
 
+        } else {
+            System.err.println("Fail loading score file");
         }
         return new FlowPane();
     }
@@ -179,6 +221,7 @@ public class MainViewFX extends Application {
     }
 
     public void updateRectangles() {
+        checkScore();
         //System.out.println("Rectangle Update!");
         Block[] blocks = MainViewFX.myGame.getArrayBlocks();
 
@@ -189,7 +232,7 @@ public class MainViewFX extends Application {
 
                 } else {
                     rect.setFill(Color.web(this.tetronimoDefaultColor));
-                    System.out.println("Setting a rect color to def " + rect.getFill().toString() + "   " + ("0x" + this.tetronimoDefaultColor + "FF").toLowerCase());
+                    //System.out.println("Setting a rect color to def " + rect.getFill().toString() + "   " + ("0x" + this.tetronimoDefaultColor + "FF").toLowerCase());
                 }
             }
         }
@@ -250,4 +293,22 @@ public class MainViewFX extends Application {
             }
         }
     };
+
+    /**
+     * Called whenever a new game is created, if previous game is detected then
+     * save the score for that game.
+     */
+    private void newGame() {
+
+    }
+
+    /**
+     * Checks if score has changed between ticks.
+     */
+    private void checkScore() {
+        if (MainViewFX.lastKnownScore != MainViewFX.score) {
+            MainViewFX.lastKnownScore = score;
+            this.scoreLabel.setText("" + MainViewFX.score);
+        }
+    }
 }

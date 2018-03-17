@@ -8,6 +8,7 @@
  * program.
  */
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -24,7 +25,7 @@ public class Kaizen_85 {
 
     private static final ArrayList Kaizen85 = new ArrayList(); // See the game Event[0].
 
-    private static String pathToLog;
+    private static File pathToLog;
 
     /**
      * Sets the event for Kaizen-85, the name for the logger. Please do not call
@@ -32,14 +33,22 @@ public class Kaizen_85 {
      *
      * @param logPath
      */
-    public static void setLogPath(String logPath) {
+    public static void setLogPath(File logPath) {
         pathToLog = logPath;
     }
 
-    public static String getLogPath() {
+    /**
+     * Returns the logpath to be written to.
+     * @return 
+     */
+    public static File getLogPath() {
         return pathToLog;
     }
 
+    /**
+     * Checks to see if the log filepath works. Returns true if can write to the filepath.
+     * @return 
+     */
     public static boolean checkLogPath() {
         Kaizen_85.newEvent("Data check for init dialog, path folder is " + pathToLog);
         FileWriter fw;
@@ -73,8 +82,9 @@ public class Kaizen_85 {
      */
     public static void panic() {
         try {
+            System.out.println("LOG PANIC");
             //System.out.println(pathToLog);
-            FileWriter fw = new FileWriter(pathToLog + "/Kaizen85Log.txt");
+            FileWriter fw = new FileWriter(pathToLog);
             PrintWriter printer = new PrintWriter(fw);
             ListIterator iter = Kaizen85.listIterator();
             while (iter.hasNext()) {

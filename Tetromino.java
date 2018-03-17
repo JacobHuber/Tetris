@@ -31,6 +31,23 @@ public class Tetromino {
 		}
 	}
 
+
+	/**
+	 * Copy constructor for tetromino
+	 *
+	 * @param tetromino
+	 */
+	public Tetromino(Tetromino tetromino) {
+		this.setBlocks(tetromino.getBlocks());
+		this.isStraight = tetromino.getIsStraight();
+
+		for (Block block : this.blocks) {
+			if (block != null) {
+				block.setTetromino(this);
+			}
+		}
+	}
+
 	/**
 	 * Returns a shallow copy of the instance's blocks
 	 *
@@ -140,11 +157,35 @@ public class Tetromino {
 	public Block[] checkCollideRotate(boolean turnClockwise) {
 		Block[] manipBlocks = this.getBlocks();
 
-
 		if (this.getIsStraight()) {
-			
+			int rotCentX = manipBlocks[0].getPositionX();
+			int rotCentY = manipBlocks[0].getPositionY();
 
+			// Set horizontal outside of for loop because block positions end up changing and this condition might become false part way through iteration.
+			boolean horizontal = true;
+			if (manipBlocks[0].getPositionX() == manipBlocks[1].getPositionX()) {
+				horizontal = false;
+			}
 
+			// Skip i = 0 because that's the center block (When rotating that block will not move)
+			for (int i = 1; i < 4; i++) {
+				if (horizontal) {
+					// Get Horizontal Displacement
+					int displacement = manipBlocks[i].getPositionX() - rotCentX;
+
+					// Set block to respective vertical position
+					if (!(manipBlocks[i].setPositionX(rotCentX) && manipBlocks[i].setPositionY(rotCentY + displacement))) {
+						return null;
+					}
+				} else {
+					int displacement = manipBlocks[i].getPositionY() - rotCentY;
+
+					if (!(manipBlocks[i].setPositionX(rotCentX + displacement) && manipBlocks[i].setPositionY(rotCentY))) {
+						return null;
+					}
+				}
+			}
+		// Not a Straight Block
 		} else {
 			// Skip i = 0 because that's the center block (When rotating that block will not move)
 			for (int i = 1; i < 4; i++) {
@@ -191,10 +232,9 @@ public class Tetromino {
 				}
 			}
 			
-			return manipBlocks;
 		}
 
-		return null;
+		return manipBlocks;
 	}
 
 	/**

@@ -1,4 +1,3 @@
-
 import javafx.scene.paint.Color;
 
 /**
@@ -40,6 +39,8 @@ public class Game {
      * Prints to terminal with the game grid each turn if true.
      */
     public final boolean PRINT_TO_TERMINAL = false;
+
+    private TetrominoSpawner tetrominoSpawner;
 
     //Getters for the width, height, blocks, spawn coordinates, player and running the game.
     public int getGridWidth() {
@@ -103,6 +104,7 @@ public class Game {
         this.blockSpawnY = 0;
 
         this.arrayBlocks = new Block[this.gridWidth * this.gridHeight];
+        this.tetrominoSpawner = new TetrominoSpawner(this);
     }
 
     /**
@@ -110,14 +112,17 @@ public class Game {
      * the block creation position to tell whether the game has ended or not.
      */
     public void createBlock(Color c) {
-        //System.out.println("New block created");
-        
-        // Temporary block creation (Should be randomized in the future.)
-        Block[] blocks = {new Block(this, c, 5, 0), new Block(this, c, 4, 0), new Block(this, c, 6, 0), new Block(this, c, 5, 1)};
-        this.tetrominoFalling = new Tetromino(blocks, false);
+        Tetromino newTetromino = tetrominoSpawner.spawnTetromino(c);
 
-        for (Block block : this.tetrominoFalling.getBlocks()) {
-            updateBlock(block, this.getArrayBlocks());
+        if (newTetromino == null) {
+           this.gameRunning = false;
+           System.out.println("END GAME");
+        } else {
+            this.tetrominoFalling = newTetromino;
+
+            for (Block block : this.tetrominoFalling.getBlocks()) {
+                updateBlock(block, this.getArrayBlocks());
+            }
         }
     }
 

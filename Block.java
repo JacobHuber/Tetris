@@ -50,8 +50,8 @@ public class Block {
 
     public Block(Game game, Color c, int x, int y) {
         this.game = game;
-        this.setPositionX(x);
-        this.setPositionY(y);
+        this.positionX = x;
+        this.positionY = y;
         this.color = c;
     }
 
@@ -128,6 +128,8 @@ public class Block {
     public void moveDown() {
         if (!this.setPositionY(this.getPositionY() + 1)) {
             this.setFalling(false);
+            System.out.println("SCORE INCREASE BY 10");
+            MainViewFX.score += 10;
         }
     }
 
