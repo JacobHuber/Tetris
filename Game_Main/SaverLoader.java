@@ -1,3 +1,4 @@
+package Game_Main;
 
 import java.awt.Dimension;
 import java.io.File;
@@ -8,19 +9,25 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import GUI.AlertBox;
+
 /**
- *  Loads and saves high scores.
- *  Note: Need to ensure it doesn't overwrite old scores
+ * Loads and saves high scores. Note: Need to ensure it doesn't overwrite old
+ * scores
+ *
  * @author kell-gigabyte
  */
 public class SaverLoader {
 
-    private static File  highScoreFolder;
-    
+    private static File highScoreFolder;
+
     private static ArrayList<Integer> highScoreList = new ArrayList<>();
 
     public static void setHighScoreFolder(File folder) {
-        highScoreFolder = folder;
+        if (folder != null) {
+            System.out.println("High Score folder: " + folder.getAbsolutePath());
+            highScoreFolder = folder;
+        }
     }
 
     public static File getHighScoreFolder() {
@@ -38,10 +45,10 @@ public class SaverLoader {
                 String temp;
                 while (file.hasNext()) {
                     temp = file.nextLine();
-                    if(temp.equals("Print Test Please Ignore")){
+                    if (temp.equals("Print Test Please Ignore")) {
                         // Do nothing, it is the test print
-                    }else{
-                    highScoreList.add(Integer.parseInt(temp));
+                    } else {
+                        highScoreList.add(Integer.parseInt(temp));
                     }
                 }
                 return true;
@@ -54,6 +61,7 @@ public class SaverLoader {
     }
 
     public static boolean SaveScores() {
+        System.out.println("Saving scores.");
         FileWriter fw;
         try {
             fw = new FileWriter(highScoreFolder);
@@ -63,7 +71,7 @@ public class SaverLoader {
             }
             printer.close();
             fw.close();
-            AlertBox alert = new AlertBox(new Dimension(200, 100), "Success", "Success saving settings.");
+            AlertBox alert = new AlertBox(new Dimension(300, 100), "Success", "Success saving scores!");
             alert.display();
             return true;
         } catch (IOException ex) {
@@ -73,8 +81,14 @@ public class SaverLoader {
         }
     }
 
+    /**
+     * Checks if file can be written to.
+     *
+     * @deprecated
+     * @return canWrite
+     */
     public static boolean checkScorePath() {
-         FileWriter fw;
+        FileWriter fw;
         try {
             fw = new FileWriter(highScoreFolder);
             PrintWriter printer = new PrintWriter(fw);

@@ -1,3 +1,7 @@
+package Game_Main;
+
+import GUI.MainViewFX;
+
 /**
  * Main class. Runs all the necessary components for the game.
  */

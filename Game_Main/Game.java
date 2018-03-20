@@ -1,3 +1,9 @@
+package Game_Main;
+
+import Blocks.Block;
+import Blocks.Tetromino;
+import Blocks.TetrominoSpawner;
+import Game_Main.Debug.Kaizen_85;
 import javafx.scene.paint.Color;
 
 /**
@@ -311,8 +317,13 @@ public class Game {
                 this.colorInt = 0;
                 return Color.RED;
         }
-        System.err.println("COLOR ERROR!");
+        Kaizen_85.newEvent("Color error, picking integer out of bounds.");
+        //System.err.println("COLOR ERROR!");
         return null;
 
+    }
+    
+    public int getScore(){
+        return this.score;
     }
 }

@@ -1,5 +1,10 @@
+package GUI;
 
 import java.io.File;
+
+import Game_Main.SaverLoader;
+import Game_Main.Debug.Kaizen_85;
+
 import java.awt.Dimension;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -204,7 +209,7 @@ public class InitPopup {
         }
         SaverLoader.setHighScoreFolder(this.scoreFile);
         Kaizen_85.setLogPath(this.logFile);
-        this.confirmButton.setDisable(!(SaverLoader.checkScorePath() && Kaizen_85.checkLogPath()));
+        //this.confirmButton.setDisable(!(SaverLoader.checkScorePath() && Kaizen_85.checkLogPath()));
     }
 
     public Dimension getTetrisGridDimensions() {
@@ -221,7 +226,11 @@ public class InitPopup {
         if (this.AutoFallStrText.getText().equals("")) {
             red = 0;
         } else {
+            try{
             red = Integer.parseInt(this.AutoFallStrText.getText());
+            }catch(NumberFormatException e){
+                red = -1;
+            }
         }
 
         if (red > 3000) {

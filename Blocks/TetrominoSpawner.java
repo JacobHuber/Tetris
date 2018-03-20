@@ -1,5 +1,9 @@
+package Blocks;
+
 import javafx.scene.paint.Color;
 import java.util.Random;
+
+import Game_Main.Game;
 
 public class TetrominoSpawner {
 	// Reference to the game that this spawner is a part of

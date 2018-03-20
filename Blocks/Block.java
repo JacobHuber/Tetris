@@ -1,4 +1,8 @@
+package Blocks;
 
+
+import GUI.MainViewFX;
+import Game_Main.Game;
 import javafx.scene.paint.Color;
 
 /**
@@ -128,8 +132,6 @@ public class Block {
     public void moveDown() {
         if (!this.setPositionY(this.getPositionY() + 1)) {
             this.setFalling(false);
-            System.out.println("SCORE INCREASE BY 10");
-            MainViewFX.score += 10;
         }
     }
 

@@ -1,4 +1,10 @@
+package GUI;
 
+import Blocks.Block;
+import Game_Main.Debug.Kaizen_85;
+import Game_Main.Game;
+import Game_Main.SaverLoader;
+import java.awt.Dimension;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -43,8 +49,7 @@ public class MainViewFX extends Application {
     // Main game object
     public static Game myGame;
 
-    // Score counter stuff.
-    public static int score = 0;
+    // Score counting stuff
     private static int lastKnownScore = 0;
     private Label scoreLabel;
 
@@ -56,6 +61,10 @@ public class MainViewFX extends Application {
     private final int RECTANGLE_SIZE = 50;
 
     private static long autoFall;
+    private static long fallChange;
+    private final boolean DIFFICULTY_INCREASE = true;
+    
+    private boolean hasEnded = false;
 
     /**
      * Launches the GUI window.
@@ -75,18 +84,21 @@ public class MainViewFX extends Application {
     @Override
     public void start(Stage primaryStage) {
 
+        try{
         // Creates and runs the initialization window
         InitPopup init = new InitPopup();
         init.run();
 
         //System.out.println("Width: " + init.getTetrisGridDimensions().width + "     Height: " + init.getTetrisGridDimensions().height + "        Fall TImer: " + init.getAutoFall());
-
         // Gets values from the initialization window
         MainViewFX.height = init.getTetrisGridDimensions().height;
         MainViewFX.width = init.getTetrisGridDimensions().width;
         MainViewFX.myGame = new Game(init.getTetrisGridDimensions().width, init.getTetrisGridDimensions().height);
-        autoFall = init.getAutoFall();
-        
+        MainViewFX.autoFall = init.getAutoFall();
+        }catch(Exception e){
+            System.err.println("Init Failure");
+            Platform.exit();
+        }
         // Task to update the GUI and also cause the block to fall down every [MainViewFX.autoFall] Milliseconds.
         Task task = new Task<Void>() {
             @Override
@@ -101,6 +113,8 @@ public class MainViewFX extends Application {
                     });
                     i++;
                     Thread.sleep(MainViewFX.autoFall);
+                    Kaizen_85.newEvent("Drop speed for step: " + MainViewFX.autoFall);
+                    System.out.println(MainViewFX.autoFall);
                 }
             }
         };
@@ -178,17 +192,19 @@ public class MainViewFX extends Application {
         hbox.setStyle("-fx-background-color: #" + this.hexDelayBox + ";");
 
         this.scoreLabel = new Label("0");
-                this.scoreLabel.setMinWidth(100);
+        this.scoreLabel.setMinWidth(100);
         hbox.getChildren().add(this.scoreLabel);
-        
+
         Button SaveBtn = new Button("Save Score");
         SaveBtn.setOnAction((ActionEvent event) -> {
-          //  SaverLoader.newScore(Integer.parseInt(scoreLabel.getText())); // TODO: make this work
-          
-                // for now, when the save score button is pressed, logs are instead recorded. Will change later
-              Kaizen_85.panic();
+            // Update scores before saving
+            MainViewFX.lastKnownScore = MainViewFX.myGame.getScore();
+            SaverLoader.newScore(MainViewFX.lastKnownScore);
+
+            // Saves the scores, prints true/false to show success/failure.
+            System.out.println(SaverLoader.SaveScores());
         });
-        
+
         hbox.getChildren().add(SaveBtn);
 
         return hbox;
@@ -221,30 +237,40 @@ public class MainViewFX extends Application {
     }
 
     public void updateRectangles() {
-        checkScore();
-        //System.out.println("Rectangle Update!");
-        Block[] blocks = MainViewFX.myGame.getArrayBlocks();
 
-        // Reset all colors to default
-        for (Rectangle[] rectArr : this.tetronimos) {
-            for (Rectangle rect : rectArr) {
-                if (rect.getFill().toString().equals(("0x" + this.tetronimoDefaultColor + "FF").toLowerCase())) {
+        if (MainViewFX.myGame.getGameRunning()) {
+            checkScore();
 
-                } else {
-                    rect.setFill(Color.web(this.tetronimoDefaultColor));
-                    //System.out.println("Setting a rect color to def " + rect.getFill().toString() + "   " + ("0x" + this.tetronimoDefaultColor + "FF").toLowerCase());
+            //System.out.println("Rectangle Update!");
+            Block[] blocks = MainViewFX.myGame.getArrayBlocks();
+
+            // Reset all colors to default
+            for (Rectangle[] rectArr : this.tetronimos) {
+                for (Rectangle rect : rectArr) {
+                    if (rect.getFill().toString().equals(("0x" + this.tetronimoDefaultColor + "FF").toLowerCase())) {
+
+                    } else {
+                        rect.setFill(Color.web(this.tetronimoDefaultColor));
+                        //System.out.println("Setting a rect color to def " + rect.getFill().toString() + "   " + ("0x" + this.tetronimoDefaultColor + "FF").toLowerCase());
+                    }
                 }
             }
-        }
 
-        // Add any Block colors to the Rectangle Array
-        for (Block block : blocks) {
-            if (block != null) {
-                if (this.tetronimos[block.getPositionY()][block.getPositionX()].getFill() != Color.web(this.tetronimoDefaultColor)) {
-                    // Error printout broken, do not uncomment, it'll print even if nothing is wrong
-                    // System.err.println("Block overlap detected! " + block.getPositionX() + "X, " + block.getPositionY() + "Y");
+            // Add any Block colors to the Rectangle Array
+            for (Block block : blocks) {
+                if (block != null) {
+                    if (this.tetronimos[block.getPositionY()][block.getPositionX()].getFill() != Color.web(this.tetronimoDefaultColor)) {
+                        // Error printout broken, do not uncomment, it'll print even if nothing is wrong
+                        // System.err.println("Block overlap detected! " + block.getPositionX() + "X, " + block.getPositionY() + "Y");
+                    }
+                    this.tetronimos[block.getPositionY()][block.getPositionX()].setFill(block.getColor());
                 }
-                this.tetronimos[block.getPositionY()][block.getPositionX()].setFill(block.getColor());
+            }
+        }else{
+            if(!hasEnded){
+                AlertBox endGame = new AlertBox(new Dimension(400,100),"Game Over", "Game Over!");
+                endGame.display();
+                hasEnded = true;
             }
         }
 
@@ -306,9 +332,14 @@ public class MainViewFX extends Application {
      * Checks if score has changed between ticks.
      */
     private void checkScore() {
-        if (MainViewFX.lastKnownScore != MainViewFX.score) {
-            MainViewFX.lastKnownScore = score;
-            this.scoreLabel.setText("" + MainViewFX.score);
+        if (MainViewFX.lastKnownScore != MainViewFX.myGame.getScore()) {
+            MainViewFX.lastKnownScore = MainViewFX.myGame.getScore();
+            if (DIFFICULTY_INCREASE) {
+                MainViewFX.fallChange = MainViewFX.autoFall / 3;
+                MainViewFX.autoFall -= MainViewFX.fallChange;
+            }
+
+            this.scoreLabel.setText("" + MainViewFX.myGame.getScore());
         }
     }
 }

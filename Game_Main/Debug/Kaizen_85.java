@@ -1,3 +1,5 @@
+package Game_Main.Debug;
+
 /*
  * This program was designed for a arduino Uno, or any similar device that can communicate over 
  * serial USB.
@@ -7,7 +9,6 @@
  * can be found as a .ino file recognizable by the arduino IDE, within the zip package of this
  * program.
  */
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -34,20 +35,25 @@ public class Kaizen_85 {
      * @param logPath
      */
     public static void setLogPath(File logPath) {
+        if(logPath != null){
         pathToLog = logPath;
+        }
     }
 
     /**
      * Returns the logpath to be written to.
-     * @return 
+     *
+     * @return
      */
     public static File getLogPath() {
         return pathToLog;
     }
 
     /**
-     * Checks to see if the log filepath works. Returns true if can write to the filepath.
-     * @return 
+     * Checks if file can be written to.
+     *
+     * @deprecated
+     * @return canWrite
      */
     public static boolean checkLogPath() {
         Kaizen_85.newEvent("Data check for init dialog, path folder is " + pathToLog);
