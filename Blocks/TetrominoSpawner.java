@@ -54,7 +54,7 @@ public class TetrominoSpawner {
 	 *
 	 * @param c
 	 */
-	public Tetromino spawnTetromino(Color c) {
+	public TetrominoView spawnTetromino(Color c) {
 		// If the index needs to be reset/has reached the end of the array.
 		if (this.spawnIndex == this.shapes.length) {
 			this.spawnIndex = 0;
@@ -87,7 +87,7 @@ public class TetrominoSpawner {
 
 		this.spawnIndex += 1;
 
-		Tetromino t = new Tetromino(blocks, straight);
+		TetrominoView t = new TetrominoView(blocks, straight);
 
 		// Checks if the new Tetromino has been placed in any existing blocks.
 		if (t.move(0, 0)) {
