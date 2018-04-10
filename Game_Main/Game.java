@@ -1,8 +1,9 @@
 package Game_Main;
 
 import Blocks.Block;
-import Blocks.Tetromino;
 import Blocks.TetrominoSpawner;
+import Blocks.TetrominoView;
+import GUI.MainViewFX;
 import Game_Main.Debug.Kaizen_85;
 import javafx.scene.paint.Color;
 
@@ -36,10 +37,10 @@ public class Game {
     private int colorInt = 0;
     
     // The current falling block.
-    private Tetromino tetrominoFalling;
+    private TetrominoView tetrominoFalling;
 
     // The block that is stored/held (This feature has yet to be implemented).
-    private Tetromino tetrominoHold;
+    private TetrominoView tetrominoHold;
 
     /**
      * Prints to terminal with the game grid each turn if true.
@@ -47,6 +48,8 @@ public class Game {
     public final boolean PRINT_TO_TERMINAL = false;
 
     private TetrominoSpawner tetrominoSpawner;
+
+    private MainViewFX mainViewFX;
 
     //Getters for the width, height, blocks, spawn coordinates, player and running the game.
     public int getGridWidth() {
@@ -101,7 +104,7 @@ public class Game {
      * Creates the game with an inputted grid, height, and milliseconds per tick
      * the block fall automatically.
      */
-    public Game(int width, int height) {
+    public Game(int width, int height, MainViewFX mv) {
         //System.out.println(width + "   " + height);
         this.gridWidth = width;
         this.gridHeight = height;
@@ -111,6 +114,8 @@ public class Game {
 
         this.arrayBlocks = new Block[this.gridWidth * this.gridHeight];
         this.tetrominoSpawner = new TetrominoSpawner(this);
+
+        this.mainViewFX = mv;
     }
 
     /**
@@ -118,7 +123,7 @@ public class Game {
      * the block creation position to tell whether the game has ended or not.
      */
     public void createBlock(Color c) {
-        Tetromino newTetromino = tetrominoSpawner.spawnTetromino(c);
+        TetrominoView newTetromino = tetrominoSpawner.spawnTetromino(c);
 
         if (newTetromino == null) {
            this.gameRunning = false;
@@ -139,11 +144,10 @@ public class Game {
      * move, and pass the mapped int as a move. Otherwise pass as false for a
      * falldown tick.
      *
-     * @param isUserInput
      * @param userInput
      */
-    public void tick(boolean isUserInput, int userInput) {
-        System.out.println("Tick!");
+    public void tick(String userInput) {
+        //System.out.println("Tick!");
         // If no falling block exists or the current falling block has stopped falling (Collided), create a new block
         if (this.tetrominoFalling == null || !this.tetrominoFalling.getFalling()) {
             this.createBlock(getNextColor());
@@ -154,43 +158,31 @@ public class Game {
             removeBlock(block, this.getArrayBlocks());
         }
         
-        if (!isUserInput || userInput == 0) {
-            this.tetrominoFalling.move(0, 1);
-        }
+        if (!this.PRINT_TO_TERMINAL) this.tetrominoFalling.clearFill(this.mainViewFX);
 
         // If the method was called with user input, parse it and then do the respective move.
-        if (isUserInput) {
-            System.out.println("User input detected: " + userInput);
-            switch (userInput) {
-                case 1:
-                    this.tetrominoFalling.move(-1, 0);
-                    break;
-                case 2:
-                    this.tetrominoFalling.move(1, 0);
-                    break;
-                case 3:
-                    // CCW
-                    this.tetrominoFalling.rotate(false);
-                    break;
-                case 4:
-                    // CW
-                    this.tetrominoFalling.rotate(true);
-                    break;
-            }
-        }
+        this.tetrominoFalling.takeInput(userInput);
 
         // Set a new reference to the falling block in its new position
         for (Block block : this.tetrominoFalling.getBlocks()) {
             updateBlock(block, this.getArrayBlocks());
         }
+
+        if (!this.tetrominoFalling.getFalling()){
+            this.score += clearLines();
+        }
         
         // If true, call the printScreen method. Used for debugging.
         if (this.PRINT_TO_TERMINAL) {
             this.printScreen();
+        } else if (this.tetrominoFalling != null) {
+            this.tetrominoFalling.draw(this.mainViewFX);
         }
-        
-        if (!this.tetrominoFalling.getFalling()){
-            this.score += clearLines();
+    }
+
+    public void keyboardInput(String keyName) {
+        if (this.tetrominoFalling != null) {
+            this.tetrominoFalling.takeInput(keyName);
         }
     }
     
@@ -216,6 +208,7 @@ public class Game {
             }
 
             if (solid) {
+                this.tetrominoFalling = null;
                 Block[] manipBlocks = this.getArrayBlocks();
 
                 // Clear reference for any blocks to remove any collision problems.
@@ -242,6 +235,7 @@ public class Game {
             }
 
         }
+        mainViewFX.clearScreen();
         return linesCleared;
     }
     

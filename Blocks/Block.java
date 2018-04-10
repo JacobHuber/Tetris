@@ -23,7 +23,7 @@ public class Block {
     private Game game;
 
     // Reference for the tetromino it's a part of.
-    private Tetromino tetromino;
+    private TetrominoModel tetromino;
 
     private Color color;
 
@@ -76,7 +76,7 @@ public class Block {
         return this.game;
     }
 
-    public Tetromino getTetromino() {
+    public TetrominoModel getTetromino() {
         return this.tetromino;
     }
 
@@ -122,7 +122,7 @@ public class Block {
         this.falling = falling;
     }
 
-    public void setTetromino(Tetromino tetromino) {
+    public void setTetromino(TetrominoModel tetromino) {
         this.tetromino = tetromino;
     }
 

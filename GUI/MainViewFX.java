@@ -1,15 +1,16 @@
 package GUI;
 
 import Blocks.Block;
+import Blocks.TetrominoView;
 import Game_Main.Debug.Kaizen_85;
 import Game_Main.Game;
 import Game_Main.SaverLoader;
 import java.awt.Dimension;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -40,8 +41,8 @@ public class MainViewFX extends Application {
     private final String hexColorBox = "FFFFF0";
     private final String hexDelayBox = "78866B";
     private final String hexSliderBox = "90AFFF";
-    private final String tetronimoDefaultColor = "000";
-    private final String tetronimoBackgroundColor = "0F0F0F";
+    public final String tetrominoDefaultColor = "000";
+    private final String tetrominoBackgroundColor = "0F0F0F";
 
     // Width and height of tetris grid
     private static int width, height;
@@ -57,8 +58,8 @@ public class MainViewFX extends Application {
     private Scene mainScene;
 
     // Rectangle representation of the tetris grid
-    private Rectangle[][] tetronimos;
-    private final int RECTANGLE_SIZE = 50;
+    private Rectangle[][] tetrominos;
+    private final int RECTANGLE_SIZE = 16;
 
     private static long autoFall;
     private static long fallChange;
@@ -93,7 +94,7 @@ public class MainViewFX extends Application {
         // Gets values from the initialization window
         MainViewFX.height = init.getTetrisGridDimensions().height;
         MainViewFX.width = init.getTetrisGridDimensions().width;
-        MainViewFX.myGame = new Game(init.getTetrisGridDimensions().width, init.getTetrisGridDimensions().height);
+        MainViewFX.myGame = new Game(init.getTetrisGridDimensions().width, init.getTetrisGridDimensions().height, this);
         MainViewFX.autoFall = init.getAutoFall();
         }catch(Exception e){
             System.err.println("Init Failure");
@@ -107,8 +108,7 @@ public class MainViewFX extends Application {
                 while (true) {
                     final int finalI = i;
                     Platform.runLater(() -> {
-                        //System.out.println("AutoFall!");
-                        myGame.tick(false, -1);
+                        keyboardInput("S");
                         updateRectangles();
                     });
                     i++;
@@ -137,6 +137,7 @@ public class MainViewFX extends Application {
         mainScene = new Scene(root);
 
         //setupKeyboard(mainScene);
+        KeyboardHandler keyPressed = new KeyboardHandler(this);
         mainScene.setOnKeyPressed(keyPressed);
 
         // Sets the scene, and shows it to the user.
@@ -152,7 +153,7 @@ public class MainViewFX extends Application {
         // Creates a new, empty pane
         FlowPane tetrisPane = new FlowPane();
         // Sets the packground color
-        tetrisPane.setStyle("-fx-background-color: #" + this.tetronimoBackgroundColor + ";");
+        tetrisPane.setStyle("-fx-background-color: #" + this.tetrominoBackgroundColor + ";");
 
         // Sets the spacing for the Rectangle objects within
         tetrisPane.setPadding(new Insets(5, 10, 5, 10));
@@ -161,15 +162,15 @@ public class MainViewFX extends Application {
         tetrisPane.setPrefWrapLength(MainViewFX.width * (this.RECTANGLE_SIZE + 4)); // preferred width allows for two columns
 
         //System.out.println(this.height + " " + this.width);
-        this.tetronimos = new Rectangle[MainViewFX.height][MainViewFX.width];
+        this.tetrominos = new Rectangle[MainViewFX.height][MainViewFX.width];
 
         // Generates the Rectangle Matrix with default colors
-        for (int outer = 0; outer < this.tetronimos.length; outer++) {
-            for (int inner = 0; inner < this.tetronimos[outer].length; inner++) {
+        for (int outer = 0; outer < this.tetrominos.length; outer++) {
+            for (int inner = 0; inner < this.tetrominos[outer].length; inner++) {
                 Rectangle rect = new Rectangle(this.RECTANGLE_SIZE, this.RECTANGLE_SIZE);
-                rect.setFill(Color.web(this.tetronimoDefaultColor));
+                rect.setFill(Color.web(this.tetrominoDefaultColor));
                 tetrisPane.getChildren().add(rect);
-                this.tetronimos[outer][inner] = rect;
+                this.tetrominos[outer][inner] = rect;
             }
         }
 
@@ -177,7 +178,7 @@ public class MainViewFX extends Application {
     }
 
     /**
-     * Generates a pane for displaying the next 3 tetronimos
+     * Generates a pane for displaying the next 3 tetrominos
      *
      * @return Vbox pane
      */
@@ -228,44 +229,10 @@ public class MainViewFX extends Application {
         return new FlowPane();
     }
 
-    /**
-     * Calls the tick method of the Game object to move down the current block.
-     */
-    public void drop() {
-        System.out.println("Block Drop!");
-        myGame.tick(false, 0);
-    }
-
     public void updateRectangles() {
 
         if (MainViewFX.myGame.getGameRunning()) {
             checkScore();
-
-            //System.out.println("Rectangle Update!");
-            Block[] blocks = MainViewFX.myGame.getArrayBlocks();
-
-            // Reset all colors to default
-            for (Rectangle[] rectArr : this.tetronimos) {
-                for (Rectangle rect : rectArr) {
-                    if (rect.getFill().toString().equals(("0x" + this.tetronimoDefaultColor + "FF").toLowerCase())) {
-
-                    } else {
-                        rect.setFill(Color.web(this.tetronimoDefaultColor));
-                        //System.out.println("Setting a rect color to def " + rect.getFill().toString() + "   " + ("0x" + this.tetronimoDefaultColor + "FF").toLowerCase());
-                    }
-                }
-            }
-
-            // Add any Block colors to the Rectangle Array
-            for (Block block : blocks) {
-                if (block != null) {
-                    if (this.tetronimos[block.getPositionY()][block.getPositionX()].getFill() != Color.web(this.tetronimoDefaultColor)) {
-                        // Error printout broken, do not uncomment, it'll print even if nothing is wrong
-                        // System.err.println("Block overlap detected! " + block.getPositionX() + "X, " + block.getPositionY() + "Y");
-                    }
-                    this.tetronimos[block.getPositionY()][block.getPositionX()].setFill(block.getColor());
-                }
-            }
         }else{
             if(!hasEnded){
                 AlertBox endGame = new AlertBox(new Dimension(400,100),"Game Over", "Game Over!");
@@ -277,55 +244,15 @@ public class MainViewFX extends Application {
     }
 
     /**
-     * Handles Keyboard events.
-     */
-    private EventHandler<KeyEvent> keyPressed = new EventHandler<KeyEvent>() {
-        @Override
-        public void handle(KeyEvent event) {
-            //System.out.println(myGame.toString());
-
-            // Gets the name of the key, aka the unicode character
-            String keyName = event.getCode().getName();
-            //System.out.println(event.getCode().getName());
-
-            if (keyName.equals("S")) {
-                //System.out.println("mov down");
-                myGame.tick(false, 0);
-                updateRectangles();
-            }
-
-            if (keyName.equals("A")) {
-                //System.out.println("mov left");
-                myGame.tick(true, 1);
-                updateRectangles();
-            }
-
-            if (keyName.equals("D")) {
-                //System.out.println("mov right");
-                myGame.tick(true, 2);
-                updateRectangles();
-            }
-
-            if (keyName.equals("Q")) {
-                //System.out.println("rot left");
-                myGame.tick(true, 3);
-                updateRectangles();
-            }
-
-            if (keyName.equals("E")) {
-                //System.out.println("rot right");
-                myGame.tick(true, 4);
-                updateRectangles();
-            }
-        }
-    };
-
-    /**
      * Called whenever a new game is created, if previous game is detected then
      * save the score for that game.
      */
     private void newGame() {
 
+    }
+
+    public Rectangle[][] getTetrominos() {
+        return this.tetrominos;
     }
 
     /**
@@ -341,5 +268,32 @@ public class MainViewFX extends Application {
 
             this.scoreLabel.setText("" + MainViewFX.myGame.getScore());
         }
+    }
+
+    public void clearScreen() {
+        // Sets every block space to empty (tetrominoDefaultColor)
+        for (Rectangle[] rectArr : this.tetrominos) {
+            for (Rectangle rect : rectArr) {
+                if (!rect.getFill().toString().equals(("0x" + this.tetrominoDefaultColor + "FF").toLowerCase())) {
+                    rect.setFill(Color.web(this.tetrominoDefaultColor));
+                }
+            }
+        }
+
+        // Add any Block colors to the Rectangle Array
+        for (Block block : myGame.getArrayBlocks()) {
+            if (block != null) {
+                if (this.tetrominos[block.getPositionY()][block.getPositionX()].getFill() != Color.web(this.tetrominoDefaultColor)) {
+                    // Error printout broken, do not uncomment, it'll print even if nothing is wrong
+                    // System.err.println("Block overlap detected! " + block.getPositionX() + "X, " + block.getPositionY() + "Y");
+                }
+                this.tetrominos[block.getPositionY()][block.getPositionX()].setFill(block.getColor());
+            }
+        }
+    }
+
+    public void keyboardInput(String keyName) {
+        myGame.tick(keyName);
+        updateRectangles();
     }
 }
