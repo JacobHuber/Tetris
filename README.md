@@ -8,7 +8,7 @@ WINDOWS:
 1. To run the game, simply run Tetris.bat
 
 OTHER:
-(It is recommended to delete any .class files in any of the packages but no necessarily required)
+(It is recommended to delete any .class files in any of the packages but not necessarily required)
 
 1. In the root folder, run the command: javac Tetris_Main/Tetris.java
 2. Next, run the command: java Tetris_Main/Tetris
