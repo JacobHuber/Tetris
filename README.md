@@ -18,11 +18,13 @@ When the game has started up you will be brought to an input window requesting a
 Recommended settings are a length of 10, width of 20, and speed of 1000.
 
 To move a pieces around use A, S, D, Q and E.
-	A: Left
-	S: Down
-	D: Right
-	Q: Rotate CCW
-	E: Rotate CW
+* A: Left
+* S: Down
+* D: Right
+* Q: Rotate CCW
+* E: Rotate CW
+
+* Shift: Hold/Store
 
 To store/hold a block, press Shift. This will swap your current block with the one that is currently stored.
 If you do not have a block currently stored then it stores the current one and creates a new one.
