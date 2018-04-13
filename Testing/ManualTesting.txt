@@ -1,0 +1,18 @@
+INITIATION WINDOW:
+
+	- Setting negative width or height.
+	- Setting highscore file to a non-txt file.
+	- Trying to start without setting a highscore file.
+	- Typing non-integers into width and height fields.
+	- Closing window.
+
+PLAY:
+
+	- Moving blocks out of borders.
+	- Pressing random keys (It's fun?)
+	- Trying to move blocks into other blocks (Collision).
+	- Attempt to rotate a block in a space that it cannot rotate.
+	- Save game while playing.
+	- Close game while playing.
+	- Stack blocks up to top (Test end condition).
+	- Swap/Hold block, then make sure you get same block back after swapping again.

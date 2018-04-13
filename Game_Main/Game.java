@@ -3,8 +3,8 @@ package Game_Main;
 import Blocks.Block;
 import Blocks.TetrominoSpawner;
 import Blocks.TetrominoView;
+import Blocks.TetrominoModel;
 import GUI.MainViewFX;
-import Game_Main.Debug.Kaizen_85;
 import javafx.scene.paint.Color;
 
 /**
@@ -41,6 +41,9 @@ public class Game {
 
     // The block that is stored/held (This feature has yet to be implemented).
     private TetrominoView tetrominoHold;
+
+    // boolean for whether the player has already used hold once before setting a tetromino down.
+    private boolean holdThisTurn = false;
 
     /**
      * Prints to terminal with the game grid each turn if true.
@@ -109,8 +112,8 @@ public class Game {
         this.gridWidth = width;
         this.gridHeight = height;
 
-        this.blockSpawnX = this.gridWidth / 2;
-        this.blockSpawnY = 0;
+        this.setBlockSpawnX(this.gridWidth / 2);
+        this.setBlockSpawnY(0);
 
         this.arrayBlocks = new Block[this.gridWidth * this.gridHeight];
         this.tetrominoSpawner = new TetrominoSpawner(this);
@@ -122,8 +125,8 @@ public class Game {
      * Creates a new block, and checks if there is a block already existing in
      * the block creation position to tell whether the game has ended or not.
      */
-    public void createBlock(Color c) {
-        TetrominoView newTetromino = tetrominoSpawner.spawnTetromino(c);
+    public void createBlock() {
+        TetrominoView newTetromino = tetrominoSpawner.spawnTetromino(this.getNextColor());
 
         if (newTetromino == null) {
            this.gameRunning = false;
@@ -131,9 +134,9 @@ public class Game {
         } else {
             this.tetrominoFalling = newTetromino;
 
-            for (Block block : this.tetrominoFalling.getBlocks()) {
-                updateBlock(block, this.getArrayBlocks());
-            }
+            updateTetromino(this.tetrominoFalling);
+
+            this.holdThisTurn = false;
         }
     }
 
@@ -150,23 +153,19 @@ public class Game {
         //System.out.println("Tick!");
         // If no falling block exists or the current falling block has stopped falling (Collided), create a new block
         if (this.tetrominoFalling == null || !this.tetrominoFalling.getFalling()) {
-            this.createBlock(getNextColor());
+            this.createBlock();
         }
 
         // Clear the reference from the previous array spot to the falling block)
-        for (Block block : this.tetrominoFalling.getBlocks()) {
-            removeBlock(block, this.getArrayBlocks());
-        }
+        removeTetromino(this.tetrominoFalling);
         
         if (!this.PRINT_TO_TERMINAL) this.tetrominoFalling.clearFill(this.mainViewFX);
 
         // If the method was called with user input, parse it and then do the respective move.
-        this.tetrominoFalling.takeInput(userInput);
+        this.keyboardInput(userInput);
 
         // Set a new reference to the falling block in its new position
-        for (Block block : this.tetrominoFalling.getBlocks()) {
-            updateBlock(block, this.getArrayBlocks());
-        }
+        updateTetromino(this.tetrominoFalling);
 
         if (!this.tetrominoFalling.getFalling()){
             this.score += clearLines();
@@ -180,9 +179,43 @@ public class Game {
         }
     }
 
+    /**
+     * Handles whether the given keyboard input should be handled by the tetromino or right here.
+     *
+     * @param keyName
+     */
     public void keyboardInput(String keyName) {
         if (this.tetrominoFalling != null) {
-            this.tetrominoFalling.takeInput(keyName);
+            // The action that should be given for the given input.
+            String action = this.tetrominoFalling.handleInput(keyName);
+            switch (action) {
+                // If the action correlated to the key is to 'Hold'.
+                case "Hold":
+                    // Not swapping, just storing and creating new.
+                    if (this.tetrominoHold == null) {
+                        this.tetrominoHold = new TetrominoView(this.tetrominoFalling);
+                        removeTetromino(this.tetrominoFalling);
+                        createBlock();
+                        this.holdThisTurn = true;
+                    // Swapping
+                    } else if (!this.holdThisTurn) {
+                        this.holdThisTurn = true;
+                        TetrominoView temp = new TetrominoView(this.tetrominoHold);
+                        this.tetrominoHold = new TetrominoView(this.tetrominoFalling);
+                        removeTetromino(this.tetrominoFalling);
+                        this.tetrominoFalling = new TetrominoView(temp);
+                        // Move tetromino to start.
+                        if (this.tetrominoFalling.setCenterPos(this.getBlockSpawnX(), this.getBlockSpawnY())) {
+                            updateTetromino(this.tetrominoFalling);
+                        // Collision.
+                        } else {
+                            this.gameRunning = false;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
     
@@ -238,13 +271,43 @@ public class Game {
         mainViewFX.clearScreen();
         return linesCleared;
     }
-    
+
+    /**
+     * Updates/Sets all the blocks positions of the given tetromino for arrayBlocks
+     * @param t
+     */
+    public void updateTetromino(TetrominoModel t) {
+        for (Block block : t.getBlocks()) {
+            updateBlock(block, this.getArrayBlocks());
+        }
+    }
+
+    /**
+     * Removes/dereferences all the blocks positions of the given tetromino for arrayBlocks
+     * @param t
+     */
+    public void removeTetromino(TetrominoModel t) {
+        for (Block block : t.getBlocks()) {
+            removeBlock(block, this.getArrayBlocks());
+        }
+    }
+
+    /**
+     * Updates/Sets the blocks reference in the given array
+     * @param block
+     * @param arrayBlocks
+     */
     public void updateBlock(Block block, Block[] arrayBlocks) {
         if (block != null) {
             arrayBlocks[block.getPositionX() + (this.getGridWidth()*block.getPositionY())] = block;
         }
     }
 
+    /**
+     * Removes/dereferences the blocks reference in the given array
+     * @param block
+     * @param arrayBlocks
+     */
     public void removeBlock(Block block, Block[] arrayBlocks) {
         if (block != null) {
             arrayBlocks[block.getPositionX() + (this.getGridWidth()*block.getPositionY())] = null;
@@ -311,12 +374,15 @@ public class Game {
                 this.colorInt = 0;
                 return Color.RED;
         }
-        Kaizen_85.newEvent("Color error, picking integer out of bounds.");
         //System.err.println("COLOR ERROR!");
         return null;
 
     }
     
+    /**
+     * Getter method for the score.
+     * @return int
+     */
     public int getScore(){
         return this.score;
     }

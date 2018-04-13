@@ -3,10 +3,10 @@ package Blocks;
  * The unified entity of four blocks put together into a shape.
  * Used to move or rotate all of the blocks togehter.
  *
- * @author jacob-huber
+ * @author T03-2
  */
 public class TetrominoModel {
-	// Block list consisting of the four blocks a part of a Tetromino
+	// Block list consisting of the four blocks a part of a TetrominoModel
 	private Block[] blocks;
 
 	// Boolean whether the block is a straight piece or not (Rotation is different)
@@ -15,7 +15,7 @@ public class TetrominoModel {
 	private boolean falling = true;
 
 	/**
-	 * Creates a new Tetromino with the given blocks and also sets
+	 * Creates a new TetrominoModel with the given blocks and also sets
 	 * whether the block should be treated as if it's straight.
 	 *
 	 * @param blocks
@@ -34,7 +34,7 @@ public class TetrominoModel {
 
 
 	/**
-	 * Copy constructor for tetromino
+	 * Copy constructor for TetrominoModel
 	 *
 	 * @param tetromino
 	 */
@@ -68,10 +68,18 @@ public class TetrominoModel {
 		return returnBlocks;
 	}
 
+	/**
+	 * Getter method for the instance variable isStraight
+	 * @return boolean
+	 */
 	public boolean getIsStraight() {
 		return this.isStraight;
 	}
 
+	/**
+	 * Getter method for the instance variable falling
+	 * @return boolean
+	 */
 	public boolean getFalling() {
 		return this.falling;
 	}
@@ -81,6 +89,29 @@ public class TetrominoModel {
 	 */
 	public void setBlocks(Block[] blocks) {
 		this.blocks = blocks;
+	}
+
+	/**
+	 * Sets the tetromino's 'center' position to the given x and y. Does so based on the highest block of the tetromino.
+	 * (Used for swapping/holding)
+	 *
+	 * @param newX
+	 * @param newY
+	 *
+	 * @return boolean
+	 */
+	public boolean setCenterPos(int newX, int newY) {
+		Block[] blocks = this.getBlocks();
+		int indexForHighestY = 0;
+		for (int i = 1; i < 4; i++) {
+			if (blocks[i].getPositionY() < blocks[indexForHighestY].getPositionY()) {
+				indexForHighestY = i;
+			}
+		}
+		int horDist = newX - blocks[indexForHighestY].getPositionX();
+		int verDist = newY - blocks[indexForHighestY].getPositionY();
+
+		return this.move(horDist, verDist);
 	}
 
 	/**
@@ -186,7 +217,7 @@ public class TetrominoModel {
 					}
 				}
 			}
-		// Not a Straight Block
+		// Not a Straight TetrominoModel
 		} else {
 			// Skip i = 0 because that's the center block (When rotating that block will not move)
 			for (int i = 1; i < 4; i++) {

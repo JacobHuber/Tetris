@@ -7,22 +7,22 @@ import Game_Main.Game;
 
 public class TetrominoSpawner {
 	// Reference to the game that this spawner is a part of
-	Game game;
+	private Game game;
 
 	// This index used to pick the shape to spawn (Won't spawn the same shape until all of the others have been picked)
-	int spawnIndex = 7;
+	private int spawnIndex = 7;
 
 	// The x coordinate on the game grid that the blocks should be spawned at or around.
-	int spawnX;
+	private int spawnX;
 
 	// The y coordinate on the game grid that the blocks should be spawned at or around.
-	int spawnY;
+	private int spawnY;
 
 	// A 3D array rerpresenting the different block shapes (1D: x,y | 2D: {x,y}, {x,y}, {x,y} | 3D: { { {x,y}, ... }, { {x,y}, ... }, ... })
-	int[][][] shapes;
+	private int[][][] shapes;
 
 	// Used to randomize block order
-	Random random = new Random();
+	private Random random = new Random();
 
 
 	/**

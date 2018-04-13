@@ -2,7 +2,6 @@ package GUI;
 
 import Blocks.Block;
 import Blocks.TetrominoView;
-import Game_Main.Debug.Kaizen_85;
 import Game_Main.Game;
 import Game_Main.SaverLoader;
 import java.awt.Dimension;
@@ -27,7 +26,7 @@ import javafx.stage.Stage;
 /**
  * For future use when we need to use a GUI.
  *
- * @author kell-gigabyte
+ * @author T03-2
  */
 public class MainViewFX extends Application {
 
@@ -39,7 +38,8 @@ public class MainViewFX extends Application {
     private final String hexHbox = "4A444B";
     private final String hexButtonBox = "BA0101";
     private final String hexColorBox = "FFFFF0";
-    private final String hexDelayBox = "78866B";
+    private final String hexDelayBox = "566640";
+    private final String hexHighScoreBox = "6d775e";
     private final String hexSliderBox = "90AFFF";
     public final String tetrominoDefaultColor = "000";
     private final String tetrominoBackgroundColor = "0F0F0F";
@@ -74,7 +74,6 @@ public class MainViewFX extends Application {
      */
     public void init(String[] args) { //, int width, int height, int autoFall) {
         launch(args);
-
     }
 
     /**
@@ -85,27 +84,32 @@ public class MainViewFX extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-        try{
-        // Creates and runs the initialization window
-        InitPopup init = new InitPopup();
-        init.run();
+        try {
+            // Creates and runs the initialization window
+            InitPopup init = new InitPopup();
+            init.run();
 
-        //System.out.println("Width: " + init.getTetrisGridDimensions().width + "     Height: " + init.getTetrisGridDimensions().height + "        Fall TImer: " + init.getAutoFall());
-        // Gets values from the initialization window
-        MainViewFX.height = init.getTetrisGridDimensions().height;
-        MainViewFX.width = init.getTetrisGridDimensions().width;
-        MainViewFX.myGame = new Game(init.getTetrisGridDimensions().width, init.getTetrisGridDimensions().height, this);
-        MainViewFX.autoFall = init.getAutoFall();
-        }catch(Exception e){
+            if (!init.isComplete()) {
+                throw new Exception();
+            }
+
+            //System.out.println("Width: " + init.getTetrisGridDimensions().width + "     Height: " + init.getTetrisGridDimensions().height + "        Fall TImer: " + init.getAutoFall());
+            // Gets values from the initialization window
+            MainViewFX.height = init.getTetrisGridDimensions().height;
+            MainViewFX.width = init.getTetrisGridDimensions().width;
+            MainViewFX.myGame = new Game(init.getTetrisGridDimensions().width, init.getTetrisGridDimensions().height, this);
+            MainViewFX.autoFall = init.getAutoFall();
+        } catch (Exception e) {
             System.err.println("Init Failure");
             Platform.exit();
         }
+
         // Task to update the GUI and also cause the block to fall down every [MainViewFX.autoFall] Milliseconds.
         Task task = new Task<Void>() {
             @Override
             public Void call() throws Exception {
                 int i = 0;
-                while (true) {
+                while (myGame.getGameRunning()) {
                     final int finalI = i;
                     Platform.runLater(() -> {
                         keyboardInput("S");
@@ -113,9 +117,10 @@ public class MainViewFX extends Application {
                     });
                     i++;
                     Thread.sleep(MainViewFX.autoFall);
-                    Kaizen_85.newEvent("Drop speed for step: " + MainViewFX.autoFall);
-                    System.out.println(MainViewFX.autoFall);
+                    //Kaizen_85.newEvent("Drop speed for step: " + MainViewFX.autoFall);
+                    //System.out.println(MainViewFX.autoFall);
                 }
+                return null;
             }
         };
         Thread th = new Thread(task);
@@ -128,7 +133,7 @@ public class MainViewFX extends Application {
         BorderPane root = new BorderPane();
 
         // Sets panes on top of the root pane
-        //root.setRight(addHighScorePane());        //TODO
+        root.setRight(addHighScorePane());
         root.setLeft(addNextBlockPane());
         root.setCenter(addTetrisPane());
         root.setTop(addScorePane());
@@ -200,10 +205,13 @@ public class MainViewFX extends Application {
         SaveBtn.setOnAction((ActionEvent event) -> {
             // Update scores before saving
             MainViewFX.lastKnownScore = MainViewFX.myGame.getScore();
-            SaverLoader.newScore(MainViewFX.lastKnownScore);
 
-            // Saves the scores, prints true/false to show success/failure.
-            System.out.println(SaverLoader.SaveScores());
+            // Saves the scores, prints to show success/failure.
+            if (SaverLoader.SaveScore(MainViewFX.lastKnownScore)) {
+                System.out.println("Successfully saved highscores.");
+            } else {
+                System.out.println("Error saving highscores.");
+            }
         });
 
         hbox.getChildren().add(SaveBtn);
@@ -218,15 +226,41 @@ public class MainViewFX extends Application {
      *
      * @return Flowpane pane
      */
-    private FlowPane addHighScorePane() {
+    private VBox addHighScorePane() {
+        VBox vbox = new VBox();
+        vbox.setPadding(new Insets(12, 15, 12, 15));
+        vbox.setSpacing(10);
+        vbox.setStyle("-fx-background-color: #" + this.hexHighScoreBox + ";");
+
+
+        Label labelTitle = new Label("High Scores");
+        vbox.getChildren().add(labelTitle);
+
+
+
         boolean success = SaverLoader.LoadScores();
         if (success) {
-            System.out.println(SaverLoader.getScoreList());
+            int count = 1;
+            int[] shl = SaverLoader.getSortedScoreList();
+            int len = shl.length;
+
+            int labels = 10;
+            if (len < 10) {
+                labels = len;
+            }
+            for (int i = len-1; i >= len-labels; i--) {
+                vbox.getChildren().add(new Label(String.valueOf(count) + ":     " + String.valueOf(shl[i])));
+                count++;
+            }
+            for (int i = count; i <= 10; i++) {
+                vbox.getChildren().add(new Label(String.valueOf(i) + ":     ---"));
+            }
 
         } else {
             System.err.println("Fail loading score file");
         }
-        return new FlowPane();
+
+        return vbox;
     }
 
     public void updateRectangles() {
@@ -262,7 +296,7 @@ public class MainViewFX extends Application {
         if (MainViewFX.lastKnownScore != MainViewFX.myGame.getScore()) {
             MainViewFX.lastKnownScore = MainViewFX.myGame.getScore();
             if (DIFFICULTY_INCREASE) {
-                MainViewFX.fallChange = MainViewFX.autoFall / 3;
+                MainViewFX.fallChange = MainViewFX.autoFall / 10;
                 MainViewFX.autoFall -= MainViewFX.fallChange;
             }
 
@@ -293,7 +327,9 @@ public class MainViewFX extends Application {
     }
 
     public void keyboardInput(String keyName) {
-        myGame.tick(keyName);
-        updateRectangles();
+        if (myGame.getGameRunning()) {
+            myGame.tick(keyName);
+            updateRectangles();
+        }
     }
 }

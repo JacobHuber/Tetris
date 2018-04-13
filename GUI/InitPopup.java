@@ -3,7 +3,6 @@ package GUI;
 import java.io.File;
 
 import Game_Main.SaverLoader;
-import Game_Main.Debug.Kaizen_85;
 
 import java.awt.Dimension;
 import javafx.application.Platform;
@@ -26,7 +25,7 @@ import javafx.stage.FileChooser;
  * has several text boxes to get info from the user.
  *
  *
- * @author kell-gigabyte
+ * @author T03-2
  */
 public class InitPopup {
 
@@ -49,68 +48,44 @@ public class InitPopup {
         return this.isComplete;
     }
 
-    private void setLogFolder(File s) {
-        Kaizen_85.setLogPath(s);
-    }
+    private TextField HeightStrText = new TextField("10");
+    private TextField WidthStrText = new TextField("20");
+    private int gridMin = 10;
+    private int gridMax = 100;
 
-    private TextField HeightStrText = new TextField();
-    private TextField WidthStrText = new TextField();
-
-    private TextField AutoFallStrText = new TextField();
+    private Label AutoFallStrText = new Label();
     private Slider AutoFallSlider = new Slider();
-
-    private boolean isDebug = false;
 
     private Node confirmButton;
 
     private Dimension tetrisDimensions;
 
-    private int autoFall = 0;
-
-    private File logFile;
+    private int autoFallMin = 100;
+    private int autoFallMax = 5000;
+    private int autoFall = 1000;
 
     private File scoreFile;
 
-    private void createStage() {         // creates the GUI for the popup
+    /**
+     * Creates a new window that will create a new game with settings as specified by the user.
+     */
+    private void createStage() {
         Dialog dialog = new Dialog<>();
         dialog.setTitle("Tetris!");
-        //dialog.setHeaderText("Hello, I'd just like you to let me know about your LED strip.");
 
         ButtonType confirmButtonType = new ButtonType("Enter", ButtonData.APPLY);
         dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType);
         dialog.getDialogPane().setStyle("-fx-background-color: #" + this.hexGrey1 + ";");
 
-        ToggleButton DebugBtn = new ToggleButton("Debug mode");
-
-        Button LogBtn = new Button("Log Folder");
         Button LoadScoreBtn = new Button("High Score Folder");
-
-        DebugBtn.setOnAction((ActionEvent event) -> {
-            this.isDebug = !this.isDebug;
-            checkData();
-        });
-
-        LogBtn.setOnAction((ActionEvent event) -> {
-            FileChooser saveChooser = new FileChooser();
-            saveChooser.setInitialDirectory(new File(System.getProperty("user.home")));
-            File selectedFolder = saveChooser.showSaveDialog(dialog.getOwner());
-            if (selectedFolder == null) {
-                AlertBox alert = new AlertBox(new Dimension(400, 100), "Folder Error", "Error selecting folder. Try again.");
-                Kaizen_85.newEvent("A folder was selected as null");
-                alert.display();
-            } else {
-                this.logFile = selectedFolder;
-                checkData();
-            }
-        });
 
         LoadScoreBtn.setOnAction((ActionEvent event) -> {
             FileChooser saveChooser = new FileChooser();
-            saveChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+            String path = System.getProperty("user.dir");
+            saveChooser.setInitialDirectory(new File(path));
             File selectedFolder = saveChooser.showSaveDialog(dialog.getOwner());
             if (selectedFolder == null) {
                 AlertBox alert = new AlertBox(new Dimension(400, 100), "Folder Error", "Error selecting folder. Try again.");
-                Kaizen_85.newEvent("A folder was selected as null");
                 alert.display();
             } else {
                 this.scoreFile = selectedFolder;
@@ -124,21 +99,24 @@ public class InitPopup {
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 150, 10, 10));
 
-        this.HeightStrText.setPromptText("Length");
+        this.HeightStrText.setPromptText("Width");
         this.HeightStrText.setMaxWidth(90);
 
-        this.WidthStrText.setPromptText("Width");
+        this.WidthStrText.setPromptText("Height");
         this.WidthStrText.setMaxWidth(90);
 
-        this.AutoFallStrText.setPromptText("Fall Delay");
-        this.AutoFallStrText.setMaxWidth(120);
-        this.AutoFallStrText.setText("" + this.autoFall);
+        this.AutoFallStrText.setText(String.valueOf(this.autoFall));
 
-        this.AutoFallSlider.setMin(0);
-        this.AutoFallSlider.setMax(3000);
+        this.AutoFallSlider.setMin(this.autoFallMin);
+        this.AutoFallSlider.setMax(this.autoFallMax);
         this.AutoFallSlider.setValue(this.autoFall);
 
-        grid.add(new Label("Length and width of the Tetris Grid:"), 0, 0);
+        this.AutoFallSlider.setMajorTickUnit(200);
+        this.AutoFallSlider.setMinorTickCount(1);
+        this.AutoFallSlider.setSnapToTicks(true);
+        this.AutoFallSlider.setShowTickMarks(true);
+
+        grid.add(new Label("Width and Height of the Tetris Grid:"), 0, 0);
         grid.add(this.HeightStrText, 1, 0);
         grid.add(this.WidthStrText, 2, 0);
         grid.add(new Label("Beginning Drop speed:"), 0, 1);
@@ -146,9 +124,6 @@ public class InitPopup {
         grid.add(this.AutoFallSlider, 2, 1);
         grid.add(new Label("Please choose a file for high scores:"), 0, 3);
         grid.add(LoadScoreBtn, 1, 3);
-        grid.add(new Label("Please choose a file for the logs:"), 0, 4);
-        grid.add(LogBtn, 1, 4);
-        grid.add(DebugBtn, 0, 5);
         grid.setGridLinesVisible(false);
 
         this.confirmButton = dialog.getDialogPane().lookupButton(confirmButtonType);
@@ -162,18 +137,13 @@ public class InitPopup {
             checkData();
         });
         this.AutoFallSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            updateText();
             checkData();
-        });
-        this.AutoFallStrText.textProperty().addListener((observable, oldValue, newValue) -> {
-            updateSlider();
-            checkData();
+            this.AutoFallStrText.setText(String.valueOf((int) Math.round(this.AutoFallSlider.getValue())));
         });
         dialog.getDialogPane().setContent(grid);
 
         // Request focus on the username field by default.
         Platform.runLater(() -> HeightStrText.requestFocus());
-        Kaizen_85.newEvent("Initialization window created, showing.");
         dialog.showAndWait();
     }
 
@@ -181,35 +151,36 @@ public class InitPopup {
      * Ensures the user enters certain data before they can continue
      */
     private void checkData() {    // makes sure the data entered is formattable
-        Kaizen_85.newEvent("Data check for init dialog, path folder is " + Kaizen_85.getLogPath() + " and the current Tetris Grid dimensions are " + HeightStrText.getText() + " high by " + WidthStrText.getText() + " Wide.");
         boolean intParsable = false;
 
         try {
-            if ((int) this.AutoFallSlider.getValue() == this.autoFall) {
-                this.autoFall = Integer.parseInt(this.AutoFallStrText.getText());
-            } else {
-                this.autoFall = (int) Math.round(this.AutoFallSlider.getValue());
-            }
-
             int height = Integer.parseInt(this.HeightStrText.getText());
             int width = Integer.parseInt(this.WidthStrText.getText());
             int autoFall = (int) this.AutoFallSlider.getValue();
+
+            if (height < 4 || width < 4) {
+                throw new NumberFormatException();
+            }
+
             this.tetrisDimensions = new Dimension(height, width);
 
             intParsable = true;
         } catch (NumberFormatException e) {
+            intParsable = false;
             //System.err.println("Number entered on init panel is invalid, please try again.");
         }
 
-        if (this.isDebug) {
-        } else if (intParsable) {
-
+        if (intParsable) {
+            SaverLoader.setHighScoreFolder(this.scoreFile);
+            if (SaverLoader.checkScorePath()) {
+                this.confirmButton.setDisable(false);
+                this.isComplete = true;
+            }
         } else {
+            this.isComplete = false;
             this.confirmButton.setDisable(true);
         }
-        SaverLoader.setHighScoreFolder(this.scoreFile);
-        Kaizen_85.setLogPath(this.logFile);
-        //this.confirmButton.setDisable(!(SaverLoader.checkScorePath() && Kaizen_85.checkLogPath()));
+        
     }
 
     public Dimension getTetrisGridDimensions() {
@@ -220,41 +191,32 @@ public class InitPopup {
         return this.autoFall;
     }
 
+
     private void updateSlider() { // updates sliders from text fields
-        //Kaizen_85.newEvent("Values dupated from text flields to sliders.");
-        int red, green, blue;
-        if (this.AutoFallStrText.getText().equals("")) {
-            red = 0;
-        } else {
-            try{
-            red = Integer.parseInt(this.AutoFallStrText.getText());
-            }catch(NumberFormatException e){
-                red = -1;
+        validateText();
+
+        int val = Integer.valueOf(this.AutoFallStrText.getText());
+        this.AutoFallSlider.setValue(val);
+    }
+
+    private void validateText() {
+        String t = this.AutoFallStrText.getText();
+        int updated;
+        if (!(t.length() <= 4)) {
+            updated = (int) Math.round(Integer.parseInt(t));
+            if (updated < this.autoFallMin) {
+                updated = this.autoFallMin;
+            } else if (updated > this.autoFallMax) {
+                updated = this.autoFallMax;
             }
+        } else {
+            updated = this.autoFallMax;
         }
-
-        if (red > 3000) {
-            red = 3000;
-        } else if (red < 0) {
-            red = 0;
-        }
-
-        this.AutoFallSlider.setValue(red);
+        this.AutoFallStrText.setText(String.valueOf(updated));
     }
 
     private void updateText() { // updates text fields from sliders
-        //Kaizen_85.newEvent("Values dupated from sliders to text fields.");
-        int red = (int) Math.round(this.AutoFallSlider.getValue());
-        if (red > 3000) {
-            red = 3000;
-        } else if (red < 0) {
-            red = 0;
-        }
-
-        String r = "" + red;
-
-        this.AutoFallStrText.setText(r);
-
+        this.AutoFallStrText.setText(String.valueOf(this.AutoFallSlider.getValue()));
     }
 
 }
